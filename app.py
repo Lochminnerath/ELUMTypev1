@@ -4,6 +4,8 @@ import sqlite3
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime
+import os
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, Form, Request
@@ -11,7 +13,8 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-DB_PATH = "health_manager.db"
+BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = os.getenv("HEALTH_MANAGER_DB_PATH", "/tmp/health_manager.db" if os.getenv("NETLIFY") else str(BASE_DIR / "health_manager.db"))
 DEFAULT_TIMEZONE = "America/New_York"
 QUICK_ADD_OPTIONS = [
     ("Quick Snack", 180),
@@ -40,8 +43,8 @@ FOOD_GROUPS = [
 ]
 
 app = FastAPI(title="Health Manager")
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
 @dataclass
