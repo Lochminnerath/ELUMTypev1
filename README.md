@@ -27,12 +27,3 @@ Then open http://127.0.0.1:8000
 ## Notes
 - This project uses SQLite (`health_manager.db`) and automatically seeds the food catalog at startup.
 - You can edit timezone and fasting cutoff hour in settings.
-
-## Netlify deployment
-
-This project runs on Netlify using a Python Function wrapper for FastAPI.
-
-- Function entrypoint: `netlify/functions/api.py`
-- Routing: `netlify.toml` rewrites all paths (`/*`) to `/.netlify/functions/api`
-
-If you saw a Netlify 404 previously, this setup fixes it by explicitly declaring the functions directory and redirect rules.
