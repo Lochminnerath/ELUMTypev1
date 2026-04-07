@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = os.getenv("HEALTH_MANAGER_DB_PATH", "/tmp/health_manager.db" if os.getenv("NETLIFY") else str(BASE_DIR / "health_manager.db"))
+DB_PATH = os.getenv("HEALTH_MANAGER_DB_PATH", str(BASE_DIR / "health_manager.db"))
 DEFAULT_TIMEZONE = "America/New_York"
 QUICK_ADD_OPTIONS = [
     ("Quick Snack", 180),
