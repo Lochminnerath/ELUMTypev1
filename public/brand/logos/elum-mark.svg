@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 10 100 100" role="img" aria-label="ELUM"><title>ELUM</title><defs>
+<radialGradient id="g" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9ECF4"/></radialGradient>
+<linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#BACAFC"/><stop offset=".55" stop-color="#E3E9FE"/><stop offset="1" stop-color="#BACAFC"/></linearGradient>
+<linearGradient id="lens" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8FA9FA"/><stop offset="1" stop-color="#5C80F2"/></linearGradient>
+</defs><circle cx="74" cy="46" r="34" fill="url(#g)" stroke="url(#rim)" stroke-width="2"/><circle cx="46" cy="74" r="34" fill="url(#g)" fill-opacity=".92" stroke="url(#rim)" stroke-width="2"/><clipPath id="clip"><circle cx="74" cy="46" r="34"/></clipPath><circle cx="46" cy="74" r="34" fill="url(#lens)" clip-path="url(#clip)"/></svg>

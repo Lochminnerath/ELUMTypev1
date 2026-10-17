@@ -1,0 +1,285 @@
+/* The list (320-380px) and the conversation beside it; one column on phones (handoff 8.3). */
+.inbox {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: clamp(320px, 30vw, 380px) minmax(0, 1fr);
+}
+.inbox__list {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--hairline);
+}
+.inbox__head {
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--hairline);
+}
+.inbox__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.inbox__title {
+  margin: 0;
+  min-width: 0;
+  font: 400 22px/30px var(--font-display);
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inbox__compose {
+  height: 44px;
+  padding: 0 18px;
+  flex: none;
+}
+
+/* Filter chips: 26px pills; pressed is mist with a mint border (handoff 9.4). */
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -4px;
+  padding: 2px 4px;
+}
+.chips::-webkit-scrollbar {
+  display: none;
+}
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color var(--dur-hover) var(--ease), border-color var(--dur-hover) var(--ease);
+}
+.chip:hover {
+  background: var(--surface-glass);
+  color: var(--ink);
+}
+.chip[aria-pressed='true'] {
+  background: var(--accent-mist);
+  border-color: var(--accent);
+  color: var(--accent-deep);
+}
+
+.inbox__loading,
+.inbox__error {
+  padding: var(--space-8) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+.inbox__error p {
+  margin: 0;
+  color: var(--danger);
+}
+.inbox__empty {
+  padding-top: var(--space-12);
+}
+.inbox__empty h2 {
+  font-size: 22px;
+  line-height: 30px;
+}
+.inbox__none {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  background: var(--canvas);
+}
+
+.thread-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Rows 56-72px: avatar, two lines, meta on the right. Unread is bold with a mint dot. */
+.thread-row,
+.card-row {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 12px;
+  border-radius: 12px;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color var(--dur-hover) var(--ease);
+}
+.thread-row:hover,
+.card-row:hover {
+  background: var(--surface-glass);
+}
+.thread-row[aria-current='page'] {
+  background: var(--accent-mist);
+}
+.thread-row__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.thread-row__top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.thread-row__names {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+}
+.thread-row[data-unread] .thread-row__names,
+.card-row[data-unread] .thread-row__names {
+  font-weight: 700;
+}
+.thread-row__elum {
+  flex: none;
+  color: var(--accent-deep);
+}
+.thread-row__count {
+  flex: none;
+  font: 400 12px/16px var(--font-mono);
+  color: var(--ink-muted);
+}
+.thread-row__time {
+  margin-left: auto;
+  flex: none;
+  padding-left: 8px;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+.thread-row[data-unread] .thread-row__time {
+  color: var(--accent-deep);
+  font-weight: 600;
+}
+.thread-row__line {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 18px;
+}
+.thread-row__subject {
+  flex: none;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.thread-row__snippet {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+.thread-row__marks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 14px;
+  padding-top: 26px;
+  color: var(--ink-muted);
+}
+.thread-row__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Inbox cards: platform events from Write and the rest, marked with the service's glyph. */
+.card-row__icon {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface-glass);
+}
+.card-row__glyph {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--hairline);
+}
+.card-row:not(:has(.avatar)) .card-row__glyph {
+  inset: 0;
+  justify-content: center;
+  align-items: center;
+  background: var(--surface-glass);
+  box-shadow: none;
+}
+.card-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.card-row__service {
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: auto;
+}
+.card-row__service[data-service='write'] { color: var(--write-deep); }
+.card-row__service[data-service='browse'] { color: var(--browse-deep); }
+.card-row__service[data-service='make'] { color: var(--make-deep); }
+.card-row__service[data-service='store'] { color: var(--store-deep); }
+.card-row__service[data-service='elum'] { color: var(--elum-blue-deep); }
+.card-row__dot {
+  position: absolute;
+  right: 15px;
+  top: 40px;
+}
+
+@media (max-width: 860px) {
+  .inbox {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .inbox__list {
+    border-right: 0;
+  }
+}
+@media (max-width: 560px) {
+  .inbox__compose span {
+    display: none;
+  }
+  .inbox__compose {
+    width: 44px;
+    padding: 0;
+  }
+}

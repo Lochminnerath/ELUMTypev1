@@ -1,0 +1,124 @@
+.bell {
+  position: relative;
+}
+.bell__dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--elum-blue);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.notifications {
+  width: min(380px, calc(100vw - 16px));
+  padding: 0;
+  overflow: hidden;
+}
+.notifications__body {
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
+}
+.notifications__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 12px 8px 16px;
+  border-bottom: 1px solid var(--hairline);
+}
+.notifications__title {
+  margin: 0;
+  font: 400 16px/22px var(--font-display);
+}
+.notifications__empty {
+  margin: 0;
+  padding: 20px 16px;
+  font-size: 13px;
+  line-height: 20px;
+}
+.notifications__list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow: auto;
+}
+.notice {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+.notice:hover,
+.notice:focus-visible {
+  background: var(--surface-glass);
+  outline: none;
+}
+.notice[data-unread] {
+  background: var(--elum-mist);
+}
+.notice .avatar {
+  flex: none;
+}
+.notice__service-dot {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--elum-blue);
+}
+.notice__service-dot[data-service='write'] {
+  background: var(--write);
+}
+.notice__service-dot[data-service='type'] {
+  background: var(--type);
+}
+.notice__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.notice__title {
+  font-size: 14px;
+  line-height: 19px;
+  font-weight: 600;
+}
+.notice__body {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ink-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.notice__meta {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+.notice__service {
+  font-weight: 600;
+}
+.notice__service[data-service='write'] {
+  color: var(--write-deep);
+}
+.notice__service[data-service='type'] {
+  color: var(--type-deep);
+}
+.notice__service[data-service='browse'] {
+  color: var(--browse-deep);
+}
+.notice__service[data-service='make'] {
+  color: var(--make-deep);
+}
+.notice__service[data-service='store'] {
+  color: var(--store-deep);
+}
