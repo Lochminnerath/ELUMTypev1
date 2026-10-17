@@ -70,6 +70,8 @@ export interface TypeStart {
   preferences: TypePreferences;
   /** Senders whose remote images always load. */
   imageSenders: string[];
+  /** A recovery email waiting for its code, if any. */
+  pendingRecovery?: string | null;
 }
 
 export type InboxView = 'inbox' | 'unread' | 'elum' | 'email' | 'archive' | 'spam' | 'trash';

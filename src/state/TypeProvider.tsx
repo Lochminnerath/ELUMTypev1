@@ -24,6 +24,7 @@ interface TypeContextValue {
   closeCompose: () => void;
   setPreferences: (prefs: TypePreferences) => void;
   setMailbox: (mailbox: Mailbox) => void;
+  clearPendingRecovery: () => void;
   imageSenders: Set<string>;
   allowImages: (address: string, allow: boolean) => Promise<void>;
 }
@@ -106,6 +107,7 @@ export function TypeProvider({ children }: { children: ReactNode }) {
       setMailbox: (mailbox) => setStart((s) => (s ? { ...s, mailboxes: s.mailboxes.map((m) => (m.id === mailbox.id ? mailbox : m)) } : s)),
       imageSenders,
       allowImages,
+      clearPendingRecovery: () => setStart((s) => (s ? { ...s, pendingRecovery: null } : s)),
     }),
     [start, startError, defaultMailbox, counts, refreshCounts, tick, lastEvent, compose, imageSenders, allowImages],
   );

@@ -615,6 +615,14 @@ export class LocalApi implements TypeApi {
     });
   }
 
+  async confirmRecovery(): Promise<string> {
+    throw new ApiError('not_found', 'Recovery emails are confirmed once ELUM is connected.');
+  }
+
+  async resendRecovery(): Promise<void> {
+    throw new ApiError('not_found', 'Recovery emails are confirmed once ELUM is connected.');
+  }
+
   subscribe(onChange: (event: LiveEvent) => void): () => void {
     this.listeners.add(onChange);
     return () => this.listeners.delete(onChange);

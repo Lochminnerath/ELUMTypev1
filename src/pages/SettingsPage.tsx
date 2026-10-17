@@ -12,7 +12,7 @@ const ACCOUNT_URL = 'https://account.elum.example';
 export function SettingsPage() {
   const user = useUser();
   const { updateName } = useAuth();
-  const { start, setPreferences, setMailbox, defaultMailbox } = useType();
+  const { start, setPreferences, setMailbox, defaultMailbox, clearPendingRecovery } = useType();
   const toast = useToast();
   const prefs = start!.preferences;
   const [name, setName] = useState(user.name);
@@ -69,6 +69,8 @@ export function SettingsPage() {
           </button>
         </form>
       </section>
+
+      {start!.pendingRecovery && <RecoveryCode address={start!.pendingRecovery} onDone={clearPendingRecovery} />}
 
       <section className="settings-section" aria-labelledby="s-addresses">
         <h2 id="s-addresses" className="settings-section__title">Your addresses</h2>
@@ -209,5 +211,62 @@ function MailboxSettings({ mailbox, isDefault, onSaved }: { mailbox: Mailbox; is
         Save
       </button>
     </form>
+  );
+}
+
+/** The code we emailed to a new recovery address (handoff 3.4). */
+function RecoveryCode({ address, onDone }: { address: string; onDone: () => void }) {
+  const toast = useToast();
+  const [code, setCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <section className="settings-section settings-section--notice" aria-labelledby="s-recovery">
+      <h2 id="s-recovery" className="settings-section__title">Confirm your recovery email</h2>
+      <p className="muted settings-hint">We sent a 6-digit code to {address}. It is how you get back in if you forget your password.</p>
+      <form
+        className="settings-row"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setBusy(true);
+          setError(null);
+          api.confirmRecovery(code).then(
+            () => {
+              toast(`${address} is your recovery email`, { tone: 'success' });
+              onDone();
+            },
+            (err) => {
+              setError(errorMessage(err));
+              setBusy(false);
+            },
+          );
+        }}
+      >
+        <div className="field">
+          <label htmlFor="s-code">Code</label>
+          <input
+            id="s-code"
+            className="input mono"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={6}
+            value={code}
+            aria-invalid={error ? true : undefined}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+          />
+          {error && <span className="field-error">{error}</span>}
+        </div>
+        <button type="submit" className="elum-btn elum-btn--primary elum-btn--sm" disabled={busy || code.length !== 6}>
+          Confirm
+        </button>
+      </form>
+      <button
+        type="button"
+        className="elum-btn elum-btn--quiet elum-btn--sm"
+        onClick={() => api.resendRecovery().then(() => toast('We sent a new code'), (err) => toast(errorMessage(err), { tone: 'error' }))}
+      >
+        Send a new code
+      </button>
+    </section>
   );
 }

@@ -45,6 +45,7 @@ reset role;
 
 set role anon;
 select expect_error($$select * from type_inbox()$$, '42501', 'signed-out visitors read nothing');
+select expect(type_domain() = 'type.elum.example', 'but can see the Type domain, for the sign-up form');
 reset role;
 
 create temporary table ids (who text primary key, mailbox uuid);
@@ -290,6 +291,33 @@ select expect((select count(*) from type_contacts()) >= 2, 'contacts: people you
 select expect((select name from type_contacts('stan')) = 'Stan Stranger', 'contacts: ELUM people by name');
 select expect((select address from type_contacts('stan')) = 'stan@type.elum.example', 'found at their Type address');
 reset role;
+
+-- ----------------------------------------------------- provider Message-IDs
+-- Brevo may give our message its own Message-ID; replies to that still thread.
+set role service_role;
+select type_finish_outbox((select id from type.outbox where message_id = :'m4'), 'sent', '<brevo-123@smtp-relay.example>');
+select expect((type_receive_email(jsonb_build_object('messageId', '<reply-2@outside.org>', 'inReplyTo', '<brevo-123@smtp-relay.example>',
+                'from', '{"address": "kai@outside.org"}'::jsonb, 'recipients', '["rae@type.elum.example"]'::jsonb, 'text', 'Again')) ->> 'threadId')::uuid
+              = (select thread_id from type.messages where id = :'m4'), 'replies thread by the provider''s Message-ID too');
+reset role;
+
+-- ---------------------------------------------------------- recovery emails
+set role service_role;
+select expect(type_signup_guard('203.0.113.9'), 'sign-ups are rate limited per address');
+select type_signup_guard('203.0.113.9') from generate_series(1, 4);
+select expect(not type_signup_guard('203.0.113.9'), 'five an hour');
+select type_recovery_start(:'stan', 'Stan@Personal.example', '123456');
+reset role;
+select set_config('request.jwt.claim.sub', :'stan', false);
+set role authenticated;
+select expect((type_start() ->> 'pendingRecovery') = 'stan@personal.example', 'the app knows a code is waiting');
+select expect_error($$select type_recovery_confirm('000000')$$, 'PT400', 'a wrong code is refused');
+select expect(type_recovery_confirm(' 123456 ') = 'stan@personal.example', 'the right code confirms it');
+select expect((select count(*) from jsonb_array_elements(elum_me() -> 'addresses') a where a ->> 'address' = 'stan@personal.example' and (a ->> 'verified')::boolean) = 1,
+              'and it becomes a verified address on the account');
+select expect_error($$select type_recovery_confirm('123456')$$, 'PT404', 'codes work once');
+reset role;
+select expect(elum.account_for_address('stan@personal.example') = :'stan', 'the recovery address reaches the account');
 
 -- ------------------------------------------------------- deleting accounts
 set role service_role;

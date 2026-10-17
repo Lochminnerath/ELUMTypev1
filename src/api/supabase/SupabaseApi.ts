@@ -397,6 +397,17 @@ export class SupabaseApi implements TypeApi {
     await this.rpc('type_allow_images', { p_address: address, p_allow: allow });
   }
 
+  async confirmRecovery(code: string): Promise<string> {
+    return this.rpc<string>('type_recovery_confirm', { p_code: code.trim() });
+  }
+
+  async resendRecovery(): Promise<void> {
+    await this.me();
+    const { data, error } = await this.sb.functions.invoke<{ error?: RawError }>('type-signup', { body: { action: 'resend-recovery' } });
+    if (error) throw await functionError(error);
+    if (data?.error) throw toApiError(data.error);
+  }
+
   subscribe(onChange: (event: LiveEvent) => void): () => void {
     const channels: RealtimeChannel[] = [];
     let stopped = false;

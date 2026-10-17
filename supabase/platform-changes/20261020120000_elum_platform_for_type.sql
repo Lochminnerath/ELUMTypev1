@@ -1,4 +1,4 @@
--- Platform fix needed by ELUM Type. Belongs in the platform migrations (the Write repository today);
+-- Platform changes needed by ELUM Type. Belongs in the platform migrations (the Write repository today);
 -- kept here until it moves, and applied by supabase/tests/run.sh.
 --
 -- The bug: Type's sign-up creates the auth user with email = handle@<type_domain> (handoff 3.4), so
@@ -31,3 +31,24 @@ begin
   end;
   return v_address;
 end $$;
+
+-- A verified address added to an account: a recovery email or another alias (handoff 3.3).
+-- Server only. Type calls it once a recovery code matches. An address another account has
+-- verified is never taken over; an unverified one moves to the account that proved it.
+create or replace function elum.add_verified_address(p_account uuid, p_address text, p_kind text default 'alias') returns void
+language plpgsql security definer set search_path = elum, public as $$
+declare
+  v_address text := lower(btrim(p_address));
+begin
+  if p_kind not in ('alias') then
+    raise exception using errcode = 'PT400', message = 'Only aliases can be added this way.';
+  end if;
+  if exists (select 1 from elum.addresses where address = v_address and account_id <> p_account and (verified_at is not null or kind = 'login')) then
+    raise exception using errcode = 'PT409', message = 'That address belongs to another account.';
+  end if;
+  insert into elum.addresses (address, account_id, kind, verified_at) values (v_address, p_account, p_kind, now())
+  on conflict (address) do update set account_id = excluded.account_id, kind = case when elum.addresses.kind = 'login' then 'login' else excluded.kind end,
+    verified_at = now();
+end $$;
+revoke all on function elum.add_verified_address(uuid, text, text) from public, anon, authenticated;
+grant execute on function elum.add_verified_address(uuid, text, text) to service_role;

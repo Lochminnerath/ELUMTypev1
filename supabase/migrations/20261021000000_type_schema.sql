@@ -182,6 +182,16 @@ create table type.inbox_cards (
 );
 create index inbox_cards_mailbox_idx on type.inbox_cards (mailbox_id, created_at desc);
 
+-- A recovery email waiting for its 6-digit code (handoff 3.4). Only a hash of the code is kept.
+create table type.recovery_codes (
+  account_id uuid primary key references public.profiles (id) on delete cascade,
+  address text not null check (address = lower(btrim(address))),
+  code_hash text not null,
+  attempts integer not null default 0,
+  expires_at timestamptz not null default now() + interval '30 minutes',
+  created_at timestamptz not null default now()
+);
+
 -- Who got a vacation reply, so each sender gets one every few days at most.
 create table type.vacation_log (
   mailbox_id uuid not null references type.mailboxes (id) on delete cascade,
@@ -404,7 +414,8 @@ begin
                                               'vacationSubject', vacation_subject, 'vacationBody', vacation_body, 'vacationUntil', vacation_until,
                                               'version', version)
                     from type.preferences where account_id = v_me),
-    'imageSenders', coalesce((select jsonb_agg(address order by address) from type.image_senders where account_id = v_me), '[]'));
+    'imageSenders', coalesce((select jsonb_agg(address order by address) from type.image_senders where account_id = v_me), '[]'),
+    'pendingRecovery', (select address from type.recovery_codes where account_id = v_me and expires_at > now()));
 end $$;
 
 -- The conversation list. Views: inbox, unread, elum, email, archive, spam, trash.
@@ -963,7 +974,8 @@ begin
     v_refs := array_remove(array[nullif(btrim(p ->> 'inReplyTo'), '')] ||
               coalesce((select array_agg(x) from jsonb_array_elements_text(coalesce(p -> 'references', '[]')) x), '{}'), null);
     select m.thread_id into v_thread from type.messages m
-    where m.message_id = any (v_refs)
+    -- Our Message-ID, or the one the sending provider gave our message.
+    where (m.message_id = any (v_refs) or exists (select 1 from type.outbox o where o.message_id = m.id and o.provider_id = any (v_refs)))
       and exists (select 1 from type.participants pp where pp.thread_id = m.thread_id and pp.mailbox_id = any (v_mailboxes))
       and exists (select 1 from type.participants pp where pp.thread_id = m.thread_id and pp.address = v_from)
     order by m.created_at desc limit 1;
@@ -1096,6 +1108,54 @@ begin
   delete from type.mailboxes where owner_id = p_account;
 end $$;
 
+-- The domain Type addresses live on. Public: the sign-up form shows it before anyone has an account.
+create function public.type_domain() returns text
+language sql stable security definer set search_path = type, public as $$
+  select type.domain()
+$$;
+
+-- Sign-up abuse limit for type-signup: 5 accounts an hour from one address (handoff 5.3).
+create function public.type_signup_guard(p_ip text) returns boolean
+language sql security definer set search_path = elum, public as $$
+  select elum.take_rate_limit('type.signup:' || coalesce(nullif(btrim(p_ip), ''), 'unknown'), 5, 3600)
+$$;
+
+-- Starts confirming a recovery email: stores a hash of the code type-signup emails out.
+create function public.type_recovery_start(p_account uuid, p_address text, p_code text) returns void
+language plpgsql security definer set search_path = type, public as $$
+begin
+  perform type.check_address(lower(btrim(p_address)));
+  insert into type.recovery_codes (account_id, address, code_hash)
+  values (p_account, lower(btrim(p_address)), encode(sha256(convert_to(p_account || ':' || p_code, 'UTF8')), 'hex'))
+  on conflict (account_id) do update
+    set address = excluded.address, code_hash = excluded.code_hash, attempts = 0, expires_at = now() + interval '30 minutes', created_at = now();
+end $$;
+
+-- The signed-in person enters the code. Five tries, thirty minutes. On a match the address
+-- becomes a verified alias on their ELUM account.
+create function public.type_recovery_confirm(p_code text) returns text
+language plpgsql security definer set search_path = type, elum, public as $$
+declare
+  v_me uuid := type.require_me();
+  rc type.recovery_codes;
+begin
+  select * into rc from type.recovery_codes where account_id = v_me;
+  if rc.account_id is null or rc.expires_at < now() then
+    raise exception using errcode = 'PT404', message = 'That code has expired. Ask for a new one.';
+  end if;
+  if rc.attempts >= 5 then
+    raise exception using errcode = 'PT429', message = 'Too many tries. Ask for a new code.';
+  end if;
+  if rc.code_hash <> encode(sha256(convert_to(v_me || ':' || btrim(coalesce(p_code, '')), 'UTF8')), 'hex') then
+    update type.recovery_codes set attempts = attempts + 1 where account_id = v_me;
+    raise exception using errcode = 'PT400', message = 'That code does not match. Check it and try again.';
+  end if;
+  perform elum.add_verified_address(v_me, rc.address, 'alias');
+  perform elum.audit(v_me, 'address.added', 'type', jsonb_build_object('address', rc.address, 'kind', 'alias'));
+  delete from type.recovery_codes where account_id = v_me;
+  return rc.address;
+end $$;
+
 -- ------------------------------------------------------------------ storage
 
 insert into storage.buckets (id, name, public, file_size_limit)
@@ -1131,6 +1191,7 @@ alter table type.attachments enable row level security;
 alter table type.outbox enable row level security;
 alter table type.inbox_cards enable row level security;
 alter table type.vacation_log enable row level security;
+alter table type.recovery_codes enable row level security;
 
 -- Reads only; every write goes through the functions above.
 create policy "your mailboxes" on type.mailboxes for select to authenticated using (owner_id = auth.uid());
@@ -1145,7 +1206,7 @@ create policy "your drafts" on type.drafts for select to authenticated using (ma
 create policy "files on messages you hold" on type.attachments for select to authenticated
   using ((message_id is not null and type.sees_message(message_id)) or (draft_id is not null and type.owns_draft(draft_id)));
 create policy "your inbox cards" on type.inbox_cards for select to authenticated using (mailbox_id in (select type.my_mailboxes()));
--- type.outbox and type.vacation_log: no client policies, server only.
+-- type.outbox, type.vacation_log and type.recovery_codes: no client policies, server only.
 
 revoke all on all tables in schema type from public, anon, authenticated;
 grant select on type.mailboxes, type.preferences, type.image_senders, type.threads, type.participants, type.messages,
@@ -1166,7 +1227,8 @@ revoke all on function public.type_start(), public.type_inbox(text, text, timest
   public.type_update_mailbox(uuid, text, text), public.type_update_preferences(jsonb, integer), public.type_allow_images(text, boolean),
   public.type_mark_card(uuid, boolean, boolean),
   public.type_receive_email(jsonb), public.type_claim_outbox(integer, integer, uuid), public.type_finish_outbox(bigint, text, text, text),
-  public.type_add_card(bigint, uuid, text, text, text, text, text, uuid), public.type_forget_account(uuid)
+  public.type_add_card(bigint, uuid, text, text, text, text, text, uuid), public.type_forget_account(uuid),
+  public.type_signup_guard(text), public.type_recovery_start(uuid, text, text), public.type_recovery_confirm(text)
   from public, anon, authenticated;
 
 grant execute on function public.type_start(), public.type_inbox(text, text, timestamptz, integer), public.type_thread(uuid),
@@ -1176,11 +1238,13 @@ grant execute on function public.type_start(), public.type_inbox(text, text, tim
   public.type_add_attachment(uuid, text, text, text, integer), public.type_remove_attachment(uuid),
   public.type_mark_read(uuid, boolean), public.type_move(uuid[], text), public.type_set_muted(uuid, boolean),
   public.type_update_mailbox(uuid, text, text), public.type_update_preferences(jsonb, integer), public.type_allow_images(text, boolean),
-  public.type_mark_card(uuid, boolean, boolean)
+  public.type_mark_card(uuid, boolean, boolean), public.type_recovery_confirm(text)
   to authenticated;
 grant execute on function public.type_receive_email(jsonb), public.type_claim_outbox(integer, integer, uuid),
   public.type_finish_outbox(bigint, text, text, text), public.type_add_card(bigint, uuid, text, text, text, text, text, uuid),
-  public.type_forget_account(uuid) to service_role;
+  public.type_forget_account(uuid), public.type_signup_guard(text), public.type_recovery_start(uuid, text, text) to service_role;
+
+grant execute on function public.type_domain() to anon, authenticated, service_role;
 
 -- Live updates: new messages, inbox changes and cards reach open apps through Realtime.
 do $$ begin

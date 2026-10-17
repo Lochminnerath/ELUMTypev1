@@ -74,6 +74,10 @@ export interface TypeApi {
   updatePreferences(patch: Partial<Omit<TypePreferences, 'version'>>, version: number): Promise<TypePreferences>;
   updateMailbox(id: string, change: { displayName?: string; signature?: string }): Promise<Mailbox>;
   allowImages(address: string, allow: boolean): Promise<void>;
+  /** Confirms the pending recovery email with the code we sent it. Returns the address. */
+  confirmRecovery(code: string): Promise<string>;
+  /** Sends a new code to the pending recovery email. */
+  resendRecovery(): Promise<void>;
 
   /** Calls back when something changes for the signed-in person. Returns an unsubscribe function. */
   subscribe(onChange: (event: LiveEvent) => void): () => void;

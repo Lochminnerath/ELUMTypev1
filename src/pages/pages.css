@@ -88,6 +88,10 @@
 .settings-section .field {
   width: 100%;
 }
+.settings-section--notice {
+  border-color: var(--accent-line);
+  background: var(--accent-mist);
+}
 .settings-section__title {
   margin: 0;
   font: 400 18px/26px var(--font-display);
