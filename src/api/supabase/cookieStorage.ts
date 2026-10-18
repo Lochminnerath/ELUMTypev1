@@ -6,6 +6,24 @@
  * (`name.0`, `name.1` ...) with a count in `name`. Supabase's own refresh-token rotation still
  * applies; every service reads and writes the same cookies.
  */
+
+/** Hosting domains on the public suffix list: browsers refuse cookies shared across their sites. */
+const SHARED_HOSTS = ['netlify.app', 'vercel.app', 'pages.dev', 'github.io', 'onrender.com', 'web.app', 'firebaseapp.com'];
+
+/**
+ * The cookie domain to use on this host, or null when a browser would refuse it: the site is not
+ * under that domain, or the domain is a shared host like netlify.app. Null means the session stays
+ * in this site's own storage, so a wrong setting can never silently drop every sign-in.
+ */
+export function usableCookieDomain(domain: string | undefined, hostname: string): string | null {
+  const bare = domain?.trim().replace(/^\./, '').toLowerCase();
+  if (!bare || !bare.includes('.')) return null;
+  const host = hostname.toLowerCase();
+  if (host !== bare && !host.endsWith(`.${bare}`)) return null;
+  if (SHARED_HOSTS.includes(bare)) return null;
+  return `.${bare}`;
+}
+
 const CHUNK = 2400;
 const MAX_AGE = 60 * 60 * 24 * 400; // The longest browsers keep a cookie.
 

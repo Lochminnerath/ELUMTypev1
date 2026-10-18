@@ -27,7 +27,7 @@ import type {
   User,
 } from '../types';
 import { checkPassword, cleanName, handleProblem, isEmail, loginToEmail } from '../validation';
-import { cookieStorage } from './cookieStorage';
+import { cookieStorage, usableCookieDomain } from './cookieStorage';
 
 /**
  * ELUM Type on the shared ELUM Supabase project.
@@ -101,10 +101,11 @@ export class SupabaseApi implements TypeApi {
   private readonly unauthorizedHandlers = new Set<() => void>();
   private readonly signedUrls = new Map<string, { url: string; expires: number }>();
   private mailboxIds: string[] = [];
+  private domainLookup: Promise<string> | null = null;
 
   constructor(url: string, anonKey: string, options: { typeDomain?: string; client?: SupabaseClient } = {}) {
     this.typeDomain = options.typeDomain ?? 'type.elum.services';
-    const cookieDomain = import.meta.env.VITE_ELUM_COOKIE_DOMAIN?.trim();
+    const cookieDomain = usableCookieDomain(import.meta.env.VITE_ELUM_COOKIE_DOMAIN, location.hostname);
     this.sb =
       options.client ??
       createClient(url, anonKey, {
@@ -140,7 +141,7 @@ export class SupabaseApi implements TypeApi {
   }
 
   async signIn(input: SignInInput): Promise<Session> {
-    const email = loginToEmail(input.login, this.typeDomain);
+    const email = loginToEmail(input.login, input.login.includes('@') ? this.typeDomain : await this.serverDomain());
     const { data, error } = await this.sb.auth.signInWithPassword({ email, password: input.password });
     if (error) {
       if (error.code === 'email_not_confirmed') {
@@ -152,6 +153,18 @@ export class SupabaseApi implements TypeApi {
       throw toApiError(error);
     }
     return this.sessionFor(data.session);
+  }
+
+  /**
+   * The domain Type addresses live on, from the database (elum.config type_domain). A handle signs
+   * in as handle@<this>, which must match the address type-signup created, whatever the build assumed.
+   */
+  private serverDomain(): Promise<string> {
+    this.domainLookup ??= Promise.resolve(this.sb.rpc('type_domain')).then(
+      ({ data }) => (typeof data === 'string' && data ? data : this.typeDomain),
+      () => this.typeDomain,
+    );
+    return this.domainLookup;
   }
 
   async signUp(input: SignUpInput): Promise<Session> {
