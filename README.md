@@ -5,7 +5,7 @@ Messages and email in one calm inbox. Built by people. Runs without AI.
 Type is ELUM's messaging app. It sits on the same ELUM platform as [Write](https://github.com/Lochminnerath/ELUMWritev1): one account, one sign-in, one notification bell, one design system.
 
 - **ELUM conversations**: between ELUM people, delivered the moment they are sent, shown as bubbles.
-- **Email**: to and from anyone, through Brevo, shown as cards. Each Type account has an address such as `ada@type.elum.example`.
+- **Email**: to and from anyone, through Brevo, shown as cards. Each Type account has an address such as `ada@type.elum.services`.
 - **Inbox cards**: when someone shares a Write document with you, it arrives in your inbox with *Open in Write*.
 - **Private by default**: remote images in email stay hidden until you allow them; received HTML is cleaned twice and shown without scripts; Bcc stays Bcc.
 

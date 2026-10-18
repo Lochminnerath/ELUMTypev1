@@ -1,6 +1,6 @@
 /**
- * Session storage in cookies on a shared parent domain (such as `.elum.example`), so signing
- * in to one ELUM service signs you in to all of them: write.elum.example, type.elum.example ...
+ * Session storage in cookies on a shared parent domain (such as `.elum.services`), so signing
+ * in to one ELUM service signs you in to all of them: write.elum.services, type.elum.services ...
  *
  * Sessions can be larger than one cookie, so values are split across numbered cookies
  * (`name.0`, `name.1` ...) with a count in `name`. Supabase's own refresh-token rotation still

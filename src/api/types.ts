@@ -17,6 +17,8 @@ export interface User {
   /** The part before @ in their Type address. */
   handle: string | null;
   createdAt: string;
+  /** Their profile picture (set in ELUM Account), as a link the browser can load. */
+  pictureUrl?: string | null;
 }
 
 export interface Session {

@@ -4,9 +4,9 @@ import { api, errorMessage, isApiError, type Mailbox } from '../api';
 import { useAuth, useUser } from '../auth/AuthProvider';
 import { useToast } from '../components/Toast';
 import { useType } from '../state/TypeProvider';
+import { ACCOUNT_URL, openAccount } from '../lib/elum';
 import './pages.css';
 
-const ACCOUNT_URL = 'https://account.elum.example';
 
 /** Signature, sending address, images, vacation reply and links to the ELUM account (handoff 8.2). */
 export function SettingsPage() {
@@ -58,16 +58,25 @@ export function SettingsPage() {
 
       <section className="settings-section" aria-labelledby="s-profile">
         <h2 id="s-profile" className="settings-section__title">You</h2>
-        <form className="settings-row" onSubmit={saveName}>
-          <div className="field">
-            <label htmlFor="s-name">Name</label>
-            <input id="s-name" className="input" value={name} maxLength={80} onChange={(e) => setName(e.target.value)} />
-            <span className="muted settings-hint">How people see you in every ELUM app.</span>
-          </div>
-          <button type="submit" className="elum-btn elum-btn--secondary elum-btn--sm" disabled={!name.trim() || name === user.name}>
-            Save
-          </button>
-        </form>
+        {ACCOUNT_URL ? (
+          <>
+            <p className="muted settings-hint">Your name, picture, language and who can message you live in your ELUM account, for every app.</p>
+            <button type="button" className="elum-btn elum-btn--secondary elum-btn--sm" onClick={() => openAccount('/profile')}>
+              Edit your profile <ExternalLink size={14} strokeWidth={1.75} />
+            </button>
+          </>
+        ) : (
+          <form className="settings-row" onSubmit={saveName}>
+            <div className="field">
+              <label htmlFor="s-name">Name</label>
+              <input id="s-name" className="input" value={name} maxLength={80} onChange={(e) => setName(e.target.value)} />
+              <span className="muted settings-hint">How people see you in every ELUM app.</span>
+            </div>
+            <button type="submit" className="elum-btn elum-btn--secondary elum-btn--sm" disabled={!name.trim() || name === user.name}>
+              Save
+            </button>
+          </form>
+        )}
       </section>
 
       {start!.pendingRecovery && <RecoveryCode address={start!.pendingRecovery} onDone={clearPendingRecovery} />}
@@ -98,9 +107,11 @@ export function SettingsPage() {
                 You sign in with {user.email}, so you can message anyone on ELUM. To email people outside ELUM from Type, add an address on {start!.typeDomain}.
                 Your current address stays as a way to sign in and recover your account.
               </p>
-              <a className="elum-btn elum-btn--secondary elum-btn--sm" href={`${ACCOUNT_URL}/addresses`} target="_blank" rel="noopener noreferrer">
-                Get an ELUM address <ExternalLink size={14} strokeWidth={1.75} />
-              </a>
+              {ACCOUNT_URL && (
+                <button type="button" className="elum-btn elum-btn--secondary elum-btn--sm" onClick={() => openAccount('/addresses')}>
+                  Your addresses <ExternalLink size={14} strokeWidth={1.75} />
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -163,13 +174,15 @@ export function SettingsPage() {
         </button>
       </section>
 
-      <section className="settings-section" aria-labelledby="s-account">
-        <h2 id="s-account" className="settings-section__title">Your ELUM account</h2>
-        <p className="muted settings-hint">Password, recovery, which notifications reach you, and deleting your account. One account for Write, Type and the rest.</p>
-        <a className="elum-btn elum-btn--secondary elum-btn--sm" href={ACCOUNT_URL} target="_blank" rel="noopener noreferrer">
-          Open your ELUM account <ExternalLink size={14} strokeWidth={1.75} />
-        </a>
-      </section>
+      {ACCOUNT_URL && (
+        <section className="settings-section" aria-labelledby="s-account">
+          <h2 id="s-account" className="settings-section__title">Your ELUM account</h2>
+          <p className="muted settings-hint">Password, people and privacy, which notifications reach you, and deleting your account. One account for Write, Type and the rest.</p>
+          <button type="button" className="elum-btn elum-btn--secondary elum-btn--sm" onClick={() => openAccount('/')}>
+            Open your ELUM account <ExternalLink size={14} strokeWidth={1.75} />
+          </button>
+        </section>
+      )}
     </div>
   );
 }

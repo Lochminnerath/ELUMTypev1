@@ -103,7 +103,7 @@ export class SupabaseApi implements TypeApi {
   private mailboxIds: string[] = [];
 
   constructor(url: string, anonKey: string, options: { typeDomain?: string; client?: SupabaseClient } = {}) {
-    this.typeDomain = options.typeDomain ?? 'type.elum.example';
+    this.typeDomain = options.typeDomain ?? 'type.elum.services';
     const cookieDomain = import.meta.env.VITE_ELUM_COOKIE_DOMAIN?.trim();
     this.sb =
       options.client ??
@@ -208,7 +208,7 @@ export class SupabaseApi implements TypeApi {
       .select('id, name, email, color, account_type, handle, created_at')
       .single<ProfileRow>();
     if (error) throw toApiError(error);
-    return toUser(data);
+    return { ...toUser(data), pictureUrl: await this.pictureUrl(data.id) };
   }
 
   async handleAvailable(handle: string): Promise<boolean> {
@@ -408,6 +408,20 @@ export class SupabaseApi implements TypeApi {
     if (data?.error) throw toApiError(data.error);
   }
 
+  async handoff(to: string, next: string): Promise<string> {
+    await this.me();
+    const { data, error } = await this.sb.functions.invoke<{ data?: { url: string }; error?: RawError }>('account-handoff', { body: { to, next } });
+    if (error) throw await functionError(error);
+    if (!data?.data?.url) throw new ApiError('server', 'We could not sign you in there.');
+    return data.data.url;
+  }
+
+  async completeHandoff(tokenHash: string): Promise<Session> {
+    const { data, error } = await this.sb.auth.verifyOtp({ token_hash: tokenHash, type: 'email' });
+    if (error || !data.session) throw new ApiError('unauthorized', 'That sign-in link has expired or was already used. Sign in again.');
+    return this.sessionFor(data.session);
+  }
+
   subscribe(onChange: (event: LiveEvent) => void): () => void {
     const channels: RealtimeChannel[] = [];
     let stopped = false;
@@ -515,7 +529,20 @@ export class SupabaseApi implements TypeApi {
       .eq('id', session.user.id)
       .single<ProfileRow>();
     if (error) throw toApiError(error);
-    return { user: toUser(data) };
+    return { user: { ...toUser(data), pictureUrl: await this.pictureUrl(data.id) } };
+  }
+
+  /** The profile picture from ELUM Account, when there is one (older databases have none). */
+  private async pictureUrl(id: string): Promise<string | null> {
+    try {
+      const { data } = await this.sb.rpc('elum_pictures', { p_ids: [id] });
+      const path = (data as { picture: string }[] | null)?.[0]?.picture;
+      if (!path) return null;
+      const signed = await this.sb.storage.from('avatars').createSignedUrl(path, 60 * 60);
+      return signed.data?.signedUrl ?? null;
+    } catch {
+      return null;
+    }
   }
 }
 

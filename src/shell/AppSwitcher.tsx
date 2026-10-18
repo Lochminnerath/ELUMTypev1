@@ -1,5 +1,5 @@
 import { LayoutGrid } from 'lucide-react';
-import { WRITE_URL } from '../api';
+import { ACCOUNT_URL, openElsewhere, WRITE_URL } from '../lib/elum';
 import { ProductGlyph, type Product } from '../components/Brand';
 import { Popover } from '../components/Popover';
 
@@ -43,7 +43,17 @@ export function AppSwitcher() {
               return (
                 <li key={p.id}>
                   {open && !here ? (
-                    <a className="switcher__item" href={p.url!} target="_blank" rel="noopener noreferrer">
+                    <a
+                      className="switcher__item"
+                      href={p.url!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => {
+                        // Opens signed in, through ELUM Account.
+                        e.preventDefault();
+                        void openElsewhere(p.url!, true);
+                      }}
+                    >
                       {content}
                     </a>
                   ) : (
@@ -55,6 +65,18 @@ export function AppSwitcher() {
               );
             })}
           </ul>
+          {ACCOUNT_URL && (
+            <a
+              className="switcher__account"
+              href={ACCOUNT_URL}
+              onClick={(e) => {
+                e.preventDefault();
+                void openElsewhere(ACCOUNT_URL!, true);
+              }}
+            >
+              Your ELUM account
+            </a>
+          )}
         </div>
       )}
     </Popover>

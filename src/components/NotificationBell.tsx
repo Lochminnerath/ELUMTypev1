@@ -1,7 +1,8 @@
 import { Bell } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { api, WRITE_URL, type AppNotification } from '../api';
+import { api, type AppNotification } from '../api';
+import { openElsewhere, WRITE_URL } from '../lib/elum';
 import { formatWhen } from '../lib/time';
 import { Avatar } from './Avatar';
 import { Popover } from './Popover';
@@ -45,10 +46,11 @@ export function NotificationBell() {
   const open = (n: AppNotification) => {
     if (!n.readAt) void feed.markRead([n.id]).then(load);
     if (!n.link) return;
-    if (/^https?:\/\//.test(n.link)) window.open(n.link, '_blank', 'noopener,noreferrer');
+    // Links into another ELUM app open there already signed in.
+    if (/^https?:\/\//.test(n.link)) void openElsewhere(n.link, true);
     else if (n.service === 'type') navigate(n.link);
     // A path from another service opens in that service.
-    else if (n.service === 'write') window.open(WRITE_URL + n.link, '_blank', 'noopener,noreferrer');
+    else if (n.service === 'write') void openElsewhere(WRITE_URL + n.link, true);
   };
 
   return (

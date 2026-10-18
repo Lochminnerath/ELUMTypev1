@@ -144,3 +144,8 @@
   color: var(--ink);
   box-shadow: 0 1px 2px rgba(20, 26, 46, 0.08);
 }
+
+.avatar--picture {
+  object-fit: cover;
+  background: var(--surface-glass);
+}

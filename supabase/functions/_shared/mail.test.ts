@@ -20,25 +20,25 @@ describe('inbound', () => {
   const item = {
     Uuid: ['x'],
     MessageId: '<abc@outside.org>',
-    InReplyTo: '<1@type.elum.example>',
+    InReplyTo: '<1@type.elum.services>',
     From: { Name: 'Kai Moreno', Address: 'Kai@Outside.org' },
-    To: [{ Name: 'Rae', Address: 'rae@type.elum.example' }],
-    Cc: [{ Name: null, Address: 'fen@type.elum.example' }, { Address: 'not an address' }],
+    To: [{ Name: 'Rae', Address: 'rae@type.elum.services' }],
+    Cc: [{ Name: null, Address: 'fen@type.elum.services' }, { Address: 'not an address' }],
     Subject: 'Re: Hello',
     RawHtmlBody: '<p>Hi</p><img src="https://t.example/p.gif">',
     RawTextBody: 'Hi',
     SentAtDate: '2026-10-17T10:00:00Z',
     SpamScore: 0.4,
-    Headers: { 'Authentication-Results': 'mx; spf=pass; dkim=pass; dmarc=pass', References: '<0@x> <1@type.elum.example>' },
+    Headers: { 'Authentication-Results': 'mx; spf=pass; dkim=pass; dmarc=pass', References: '<0@x> <1@type.elum.services>' },
     Attachments: [{ Name: '../../etc/passwd', ContentType: 'text/plain', ContentLength: 12, DownloadToken: 'tok' }],
   };
 
   it('reads a Brevo inbound item', () => {
     const mail = fromBrevoInbound(item);
     expect(mail.from).toEqual({ address: 'kai@outside.org', name: 'Kai Moreno' });
-    expect(mail.recipients).toEqual(['rae@type.elum.example', 'fen@type.elum.example']);
+    expect(mail.recipients).toEqual(['rae@type.elum.services', 'fen@type.elum.services']);
     expect(mail.cc).toHaveLength(1);
-    expect(mail.references).toEqual(['<0@x>', '<1@type.elum.example>']);
+    expect(mail.references).toEqual(['<0@x>', '<1@type.elum.services>']);
     expect(mail.attachments[0].name).toBe('_.._etc_passwd');
     expect(mail.date).toBe('2026-10-17T10:00:00.000Z');
     expect(isSpam(mail.headers, mail.spamScore)).toBe(false);
@@ -82,15 +82,15 @@ describe('outbound', () => {
   const message = {
     id: 'm1',
     threadId: 't1',
-    from: { address: 'rae@type.elum.example', name: 'Rae Reed' },
-    to: [{ address: 'kai@outside.org', name: 'Kai' }, { address: 'fen@type.elum.example', name: 'Fen' }, { address: 'ola@example.org', name: 'Ola' }],
+    from: { address: 'rae@type.elum.services', name: 'Rae Reed' },
+    to: [{ address: 'kai@outside.org', name: 'Kai' }, { address: 'fen@type.elum.services', name: 'Fen' }, { address: 'ola@example.org', name: 'Ola' }],
     cc: [],
     subject: 'Hello',
     text: 'Hi <Kai>',
     html: null,
-    messageId: '<m1@type.elum.example>',
+    messageId: '<m1@type.elum.services>',
     inReplyTo: '<prev@outside.org>',
-    references: ['<first@type.elum.example>'],
+    references: ['<first@type.elum.services>'],
     auto: false,
     signature: 'Rae',
     attachments: [],
@@ -104,20 +104,20 @@ describe('outbound', () => {
     const body = outboundBody(message, (h) => h);
     expect(body.text).toBe('Hi <Kai>\n\n-- \nRae');
     expect(body.html).toContain('Hi &lt;Kai&gt;');
-    const p = brevoPayload(rows, 'type.elum.example', body, []);
+    const p = brevoPayload(rows, 'type.elum.services', body, []);
     // Outside recipients and Type addresses are shown; an external account's login email is not emailed.
-    expect(p.to).toEqual([{ email: 'kai@outside.org', name: 'Kai' }, { email: 'fen@type.elum.example', name: 'Fen' }]);
+    expect(p.to).toEqual([{ email: 'kai@outside.org', name: 'Kai' }, { email: 'fen@type.elum.services', name: 'Fen' }]);
     expect(p.bcc).toEqual([{ email: 'boss@outside.org' }]);
-    expect(p.sender).toEqual({ email: 'rae@type.elum.example', name: 'Rae Reed' });
+    expect(p.sender).toEqual({ email: 'rae@type.elum.services', name: 'Rae Reed' });
     expect(p.headers).toMatchObject({
-      'Message-Id': '<m1@type.elum.example>',
+      'Message-Id': '<m1@type.elum.services>',
       'In-Reply-To': '<prev@outside.org>',
-      References: '<first@type.elum.example> <prev@outside.org>',
+      References: '<first@type.elum.services> <prev@outside.org>',
     });
   });
 
   it('marks automatic replies', () => {
-    const p = brevoPayload([{ ...rows[0], message: { ...message, auto: true } }], 'type.elum.example', { html: '', text: '' }, []);
+    const p = brevoPayload([{ ...rows[0], message: { ...message, auto: true } }], 'type.elum.services', { html: '', text: '' }, []);
     expect((p.headers as Record<string, string>)['Auto-Submitted']).toBe('auto-replied');
   });
 
@@ -143,12 +143,12 @@ describe('cards', () => {
     channel: 'type_inbox',
   };
   it('turns Write shares into cards that open Write', () => {
-    expect(cardFor(row, { write: 'https://write.elum.example' })).toEqual({
+    expect(cardFor(row, { write: 'https://elumwrite.netlify.app' })).toEqual({
       service: 'write',
       title: 'Ola shared “Field notes” with you',
       body: 'You can comment.',
       actionLabel: 'Open in Write',
-      actionUrl: 'https://write.elum.example/d/d',
+      actionUrl: 'https://elumwrite.netlify.app/d/d',
     });
   });
   it('skips people who read email, invites and events without a notification', () => {

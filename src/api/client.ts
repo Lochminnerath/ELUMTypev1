@@ -31,7 +31,7 @@ import type {
  */
 export interface TypeApi {
   readonly mode: 'local' | 'remote';
-  /** The domain Type addresses live on, such as type.elum.example. */
+  /** The domain Type addresses live on, such as type.elum.services. */
   readonly typeDomain: string;
 
   // Accounts (one ELUM account for every service)
@@ -78,6 +78,11 @@ export interface TypeApi {
   confirmRecovery(code: string): Promise<string>;
   /** Sends a new code to the pending recovery email. */
   resendRecovery(): Promise<void>;
+
+  /** A one-time sign-in for another ELUM app (account-handoff): where to send the browser. */
+  handoff(to: string, next: string): Promise<string>;
+  /** Trades a handoff token from ELUM Account for a session here. */
+  completeHandoff(tokenHash: string): Promise<Session>;
 
   /** Calls back when something changes for the signed-in person. Returns an unsubscribe function. */
   subscribe(onChange: (event: LiveEvent) => void): () => void;
