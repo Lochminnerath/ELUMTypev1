@@ -199,6 +199,12 @@ export class SupabaseApi implements TypeApi {
         throw new ApiError('email_taken', 'An account with this email already exists. Sign in instead.', { field: 'email' });
       }
       if (error.code === 'weak_password') throw new ApiError('invalid', error.message, { field: 'password' });
+      // Supabase keeps the account only once the confirmation email is sent. Its built-in sender
+      // only reaches the project's own team, so without an SMTP sender every other sign-up is dropped.
+      if (/sending.*email|email.*send/i.test(error.message ?? '') || error.code === 'unexpected_failure') {
+        throw new ApiError('server', 'We could not send your confirmation email, so the account was not created. ELUM email is not set up yet (Supabase > Authentication > Emails > SMTP Settings).');
+      }
+      if (error.code === 'signup_disabled') throw new ApiError('forbidden', 'New accounts are switched off right now (Supabase > Authentication > Sign In / Providers).');
       throw toApiError(error);
     }
     if (!data.session) {
@@ -536,12 +542,20 @@ export class SupabaseApi implements TypeApi {
   }
 
   private async sessionFor(session: AuthSession): Promise<Session> {
-    const { data, error } = await this.sb
-      .from('profiles')
-      .select('id, name, email, color, account_type, handle, created_at')
-      .eq('id', session.user.id)
-      .single<ProfileRow>();
+    const load = () =>
+      this.sb.from('profiles').select('id, name, email, color, account_type, handle, created_at').eq('id', session.user.id).maybeSingle<ProfileRow>();
+    let { data, error } = await load();
     if (error) throw toApiError(error);
+    if (!data) {
+      // An account Supabase Auth knows but the profile trigger missed gets its profile now.
+      const made = await this.sb.rpc('elum_ensure_profile');
+      if (made.error) {
+        throw new ApiError('server', 'Your account is missing its profile. Run the latest database migrations (profile_for_every_account), then sign in again.');
+      }
+      ({ data, error } = await load());
+      if (error) throw toApiError(error);
+      if (!data) throw new ApiError('server', 'Your account is missing its profile. Sign in again in a moment.');
+    }
     return { user: { ...toUser(data), pictureUrl: await this.pictureUrl(data.id) } };
   }
 

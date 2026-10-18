@@ -1,7 +1,7 @@
 # Netlify: build the app and serve it as a single-page app.
 # Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in the site's environment variables.
 [build]
-  command = "npm run build"
+  command = "node scripts/require-supabase.mjs && npm run build"
   publish = "dist"
 
 [build.environment]
