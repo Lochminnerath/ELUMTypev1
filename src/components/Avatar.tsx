@@ -7,10 +7,13 @@ export function initials(name: string): string {
 }
 
 /**
- * A circle in the person's colour with their initials. People outside ELUM have no colour,
- * so they get a quiet outlined circle instead.
+ * The person's profile picture (from ELUM Account), or a circle in their colour with their
+ * initials. People outside ELUM have no colour, so they get a quiet outlined circle instead.
  */
-export function Avatar({ user, size = 32, title }: { user: { name: string; color?: string | null }; size?: number; title?: string }) {
+export function Avatar({ user, size = 32, title }: { user: { name: string; color?: string | null; pictureUrl?: string | null }; size?: number; title?: string }) {
+  if (user.pictureUrl) {
+    return <img className="avatar avatar--picture" src={user.pictureUrl} width={size} height={size} alt={title ?? ''} title={title} style={{ width: size, height: size }} />;
+  }
   const outside = !user.color;
   return (
     <span

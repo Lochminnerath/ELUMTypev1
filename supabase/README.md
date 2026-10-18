@@ -11,13 +11,16 @@ to `20261020000000_elum_platform.sql`. Then, in order:
 
 1. `platform-changes/20261020120000_elum_platform_for_type.sql`: a platform fix Type sign-ups need
    (see docs/TYPE.md). It belongs in the platform migrations; until it moves, run it from here.
-2. `migrations/20261021000000_type_schema.sql`: the `type` schema. It also opens Type as a beta
+2. `platform-changes/20261021120000_elum_services_domain.sql`: the family domain is elum.services.
+3. `migrations/20261021000000_type_schema.sql`: the `type` schema. It also opens Type as a beta
    service and adds the `type-attachments` bucket.
+4. ELUMAccountsV1's `migrations/20261022000000_elum_accounts.sql` (pictures, circles, privacy), then
+   `migrations/20261022100000_type_privacy.sql`: Type respects who may message and find each person.
 
 Then set where Type lives, for links in notifications:
 
 ```sql
-update elum.services set url = 'https://type.elum.example' where id = 'type';
+update elum.services set url = 'https://elumtype.netlify.app' where id = 'type';
 ```
 
 Type reads its data through `public.type_*` functions, so the `type` schema does **not** need to be
@@ -26,12 +29,9 @@ exposed in the API settings. Realtime needs nothing else: the migration adds `ty
 
 ## 2. The mail domain
 
-Choose the Type mail domain before anyone takes a handle; addresses are permanent. Set it in
-`elum.config` and in the app (`VITE_ELUM_TYPE_DOMAIN`):
-
-```sql
-update elum.config set value = 'type.your-domain' where key = 'type_domain';
-```
+Type addresses live on `type.elum.services` (run `platform-changes/20261021120000_elum_services_domain.sql`
+if your database still says `type.elum.example`). Settle the mail domain before anyone takes a handle;
+addresses are permanent.
 
 In DNS for that domain: MX to Brevo inbound, SPF including Brevo, Brevo's DKIM keys, and DMARC
 `p=quarantine` (later `reject`). Authenticate the domain in Brevo so any address on it can send.

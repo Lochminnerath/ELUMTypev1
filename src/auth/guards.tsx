@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Navigate, useLocation, useSearchParams } from 'react-router';
 import { safeNext } from '../api/validation';
 import { FullPageLoader } from '../components/Loader';
+import { accountsSignIn, signInThroughAccount } from '../lib/elum';
 import { useAuth } from './AuthProvider';
 
 /** Sends signed-out visitors to sign in, then brings them back. */
@@ -11,6 +12,8 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   if (status === 'loading') return <FullPageLoader brand />;
   if (status === 'signed-out') {
     const next = location.pathname + location.search;
+    // One sign-in for every ELUM app: ELUM Account sends people straight back, signed in.
+    if (accountsSignIn && signInThroughAccount(next)) return <FullPageLoader brand label="Signing you in" />;
     return <Navigate to={next === '/' ? '/signin' : `/signin?next=${encodeURIComponent(next)}`} replace />;
   }
   return <>{children}</>;

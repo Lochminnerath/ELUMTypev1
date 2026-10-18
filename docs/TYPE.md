@@ -5,7 +5,7 @@ This builds on the platform handoff (Write's `docs/ELUM-PLATFORM.md`) and says w
 ## The pieces
 
 ```
- type.elum.example (this app)
+ type.elum.services (this app)
    │  supabase.rpc('type_*')       Type's own functions: inbox, threads, send, drafts, settings
    │  supabase.rpc('elum_*')       the platform: join the service, the bell, handle checks
    │  Realtime                     type.messages, type.participants, type.inbox_cards, elum.notifications
@@ -25,7 +25,7 @@ The app never imports Supabase directly: every call goes through `TypeApi` (`src
 ## Accounts and sign-in
 
 - **One account.** Type never has its own user table. It reads `public.profiles` and calls `elum_join_service('type')` on every start (`TypeApi.start()`), which emits `elum.service.joined` the first time.
-- **Shared sign-in.** With `VITE_ELUM_COOKIE_DOMAIN=.elum.example`, the session is stored in cookies on the family domain under the key `elum-auth`, using Write's `cookieStorage.ts` unchanged. Signing in to Write signs you in here, and signing out anywhere signs out everywhere.
+- **Shared sign-in.** With `VITE_ELUM_COOKIE_DOMAIN=.elum.services`, the session is stored in cookies on the family domain under the key `elum-auth`, using Write's `cookieStorage.ts` unchanged. Signing in to Write signs you in here, and signing out anywhere signs out everywhere.
 - **Type accounts** are created by `type-signup` (service role): captcha, `type_signup_guard` (5 an hour per IP), `elum_handle_available`, `auth.admin.createUser` with `handle@<type domain>` already confirmed, then `elum_assign_type_address`. The app then signs in with the password. A recovery email gets a 6-digit code (stored hashed in `type.recovery_codes`); the person enters it under Settings and it becomes a verified alias on the account.
 - **External accounts** (people who signed up with Gmail and so on) can use Type too. Their mailbox is their login address and reaches ELUM people only: emailing outside from a Gmail address through Brevo would fail DMARC, so Type says "Get an ELUM address" instead.
 - **Handles** are checked as people type: the format locally (`src/api/validation.ts`, same rules as the database), availability with `elum_handle_available`.
@@ -77,10 +77,10 @@ In the app, received HTML is cleaned again with DOMPurify and shown in an `<ifra
 
 Write needs no changes for any of this.
 
-1. Ola shares "Field notes" with `ada@type.elum.example` in Write. `share_by_email` resolves the Type address to Ada's account and emits `write.document.shared`.
+1. Ola shares "Field notes" with `ada@type.elum.services` in Write. `share_by_email` resolves the Type address to Ada's account and emits `write.document.shared`.
 2. The platform puts the notification in Ada's bell and a delivery in the `type-inbox` consumer's queue. Write's `send-share-emails` already skips Type accounts, so no email is sent.
-3. `type-inbox-worker` claims the delivery. Its channel is `type_inbox`, so `cardFor` (`_shared/cards.ts`) makes "Ola Owner shared “Field notes” with you" with **Open in Write** linking to `https://write.elum.example/d/<id>`, and `type_add_card` stores it, once per event.
-4. The other way: a Type message emits `type.message.received`, so Write's bell shows "Rae sent you a message", linking to `https://type.elum.example/t/<thread>` (the link uses `elum.services.url` for Type once it is set).
+3. `type-inbox-worker` claims the delivery. Its channel is `type_inbox`, so `cardFor` (`_shared/cards.ts`) makes "Ola Owner shared “Field notes” with you" with **Open in Write** linking to `https://elumwrite.netlify.app/d/<id>`, and `type_add_card` stores it, once per event.
+4. The other way: a Type message emits `type.message.received`, so Write's bell shows "Rae sent you a message", linking to `https://elumtype.netlify.app/t/<thread>` (the link uses `elum.services.url` for Type once it is set).
 5. `elum.account.deleted` reaches the worker too; `type_forget_account` removes the mailboxes, drafts and settings. Messages other people received stay with them, signed "Former member".
 
 ## Design
@@ -107,7 +107,7 @@ The app copies Write's tokens, base CSS and components (Menu, Popover, Dialog, T
 
 ## Not done yet
 
-- The platform email worker, and the central account pages at `account.elum.example` (the app links to them).
+- The platform email worker, and the central account pages at `account.elum.services` (the app links to them).
 - Presence and "seen" in ELUM conversations.
 - Captcha in the sign-up form: `type-signup` checks a token when `CAPTCHA_SECRET` is set, but the form does not render a widget yet. Leave `CAPTCHA_SECRET` unset until it does.
 - Brevo field names in `fromBrevoInbound` follow Brevo's inbound parsing documentation; check them against a real delivery before launch, and whether Brevo keeps our `Message-Id` header (replies thread either way).

@@ -179,7 +179,7 @@ export class LocalApi implements TypeApi {
 
   constructor(options: LocalApiOptions = {}) {
     this.storage = options.storage ?? localStorage;
-    this.typeDomain = options.typeDomain ?? 'type.elum.example';
+    this.typeDomain = options.typeDomain ?? 'type.elum.services';
     this.iterations = options.passwordIterations ?? DEFAULT_ITERATIONS;
     this.demo = options.demo ?? true;
     this.delay = options.simulateDelay ?? 1500;
@@ -621,6 +621,14 @@ export class LocalApi implements TypeApi {
 
   async resendRecovery(): Promise<void> {
     throw new ApiError('not_found', 'Recovery emails are confirmed once ELUM is connected.');
+  }
+
+  async handoff(): Promise<string> {
+    throw new ApiError('not_found', 'Signing in to other ELUM apps works once ELUM is connected.');
+  }
+
+  async completeHandoff(): Promise<Session> {
+    throw new ApiError('not_found', 'Signing in from other ELUM apps works once ELUM is connected.');
   }
 
   subscribe(onChange: (event: LiveEvent) => void): () => void {

@@ -10,6 +10,7 @@ import { useMediaQuery } from '../lib/hooks';
 import { leadPerson, namesOf } from '../lib/format';
 import { formatFull, formatWhen } from '../lib/time';
 import { useType } from '../state/TypeProvider';
+import { openElsewhere } from '../lib/elum';
 import { ThreadView } from '../thread/ThreadView';
 import './inbox.css';
 
@@ -251,7 +252,18 @@ function CardRow({ card, onChange }: { card: InboxCard; onChange: () => void }) 
             {SERVICE_NAMES[card.service] ?? card.service}
           </span>
           {card.actionUrl && (
-            <a className="elum-btn elum-btn--secondary elum-btn--sm" href={card.actionUrl} target="_blank" rel="noopener noreferrer" onClick={() => mark({ read: true })}>
+            <a
+              className="elum-btn elum-btn--secondary elum-btn--sm"
+              href={card.actionUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                // Opens the document in Write already signed in; Write checks access itself.
+                e.preventDefault();
+                mark({ read: true });
+                void openElsewhere(card.actionUrl!, true);
+              }}
+            >
               {card.actionLabel ?? 'Open'}
             </a>
           )}

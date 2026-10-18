@@ -7,6 +7,7 @@ import { ToastProvider } from './components/Toast';
 import { TooltipLayer } from './components/TooltipLayer';
 import { InboxPage } from './inbox/InboxPage';
 import { AuthPage } from './pages/AuthPage';
+import { HandoffPage } from './pages/HandoffPage';
 import { ContactsPage } from './pages/ContactsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { Shell } from './shell/Shell';
@@ -33,6 +34,7 @@ export function App() {
               <Routes>
                 <Route path="/signin" element={<RedirectIfSignedIn><AuthPage mode="signin" /></RedirectIfSignedIn>} />
                 <Route path="/signup" element={<RedirectIfSignedIn><AuthPage mode="signup" /></RedirectIfSignedIn>} />
+                <Route path="/auth/handoff" element={<HandoffPage />} />
                 <Route path="/" element={<SignedIn><InboxPage /></SignedIn>} />
                 <Route path="/view/:view" element={<SignedIn><InboxPage /></SignedIn>} />
                 <Route path="/t/:threadId" element={<SignedIn><InboxPage /></SignedIn>} />

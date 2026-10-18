@@ -15,10 +15,10 @@
 \set m7 '20000000-0000-0000-0000-000000000007'
 
 insert into auth.users (id, email, email_confirmed_at, raw_user_meta_data) values
-  (:'rae', 'rae@type.elum.example', now(), '{"name": "Rae Reed"}'),
-  (:'fen', 'fen@type.elum.example', now(), '{"name": "Fen Field"}'),
+  (:'rae', 'rae@type.elum.services', now(), '{"name": "Rae Reed"}'),
+  (:'fen', 'fen@type.elum.services', now(), '{"name": "Fen Field"}'),
   (:'ola', 'ola@example.org', now(), '{"name": "Ola Owner"}'),
-  (:'stan', 'stan@type.elum.example', now(), '{"name": "Stan Stranger"}');
+  (:'stan', 'stan@type.elum.services', now(), '{"name": "Stan Stranger"}');
 -- What type-signup does after creating each auth user.
 select elum.assign_type_address(:'rae', 'rae'), elum.assign_type_address(:'fen', 'fen'), elum.assign_type_address(:'stan', 'stan');
 update elum.consumers set active = true;
@@ -29,7 +29,7 @@ select expect((select status from elum.services where id = 'type') = 'beta', 'Ty
 select set_config('request.jwt.claim.sub', :'rae', false);
 set role authenticated;
 select expect((select elum_join_service('type') ->> 'joined') = 'true', 'Type can be joined');
-select expect((select type_start() #>> '{mailboxes,0,address}') = 'rae@type.elum.example', 'a Type account gets its Type address');
+select expect((select type_start() #>> '{mailboxes,0,address}') = 'rae@type.elum.services', 'a Type account gets its Type address');
 select expect((select (type_start() #>> '{mailboxes,0,canEmail}')::boolean), 'and can email anyone');
 select expect((select count(*) from type.mailboxes) = 1, 'people see only their own mailboxes');
 select expect_error($$insert into type.threads (kind) values ('elum')$$, '42501', 'apps cannot write tables directly');
@@ -45,7 +45,7 @@ reset role;
 
 set role anon;
 select expect_error($$select * from type_inbox()$$, '42501', 'signed-out visitors read nothing');
-select expect(type_domain() = 'type.elum.example', 'but can see the Type domain, for the sign-up form');
+select expect(type_domain() = 'type.elum.services', 'but can see the Type domain, for the sign-up form');
 reset role;
 
 create temporary table ids (who text primary key, mailbox uuid);
@@ -56,19 +56,19 @@ insert into ids select 'ola', id from type.mailboxes where owner_id = :'ola';
 -- ------------------------------------------------------------ ELUM to ELUM
 select set_config('request.jwt.claim.sub', :'rae', false);
 set role authenticated;
-select expect((select type_send_message(:'m1', (select mailbox from ids where who = 'rae'), null, '["Fen@Type.Elum.Example"]', '[]', '[]',
+select expect((select type_send_message(:'m1', (select mailbox from ids where who = 'rae'), null, '["Fen@Type.Elum.Services"]', '[]', '[]',
                                         'Lunch', 'Lunch on Friday?') ->> 'status') = 'sent', 'ELUM messages are sent at once');
-select expect((select type_send_message(:'m1', (select mailbox from ids where who = 'rae'), null, '["fen@type.elum.example"]', '[]', '[]',
+select expect((select type_send_message(:'m1', (select mailbox from ids where who = 'rae'), null, '["fen@type.elum.services"]', '[]', '[]',
                                         'Lunch', 'Lunch on Friday?') ->> 'messageId') = :'m1', 'a retried send is the same message');
 select expect((select count(*) from type.messages) = 1, 'and makes no second copy');
 select expect((select kind from type.threads) = 'elum', 'a thread between ELUM people is an ELUM conversation');
-select expect_error(format($$select type_send_message(gen_random_uuid(), '%s', null, '["fen@type.elum.example"]', '[]', '[]', null, 'hi')$$,
+select expect_error(format($$select type_send_message(gen_random_uuid(), '%s', null, '["fen@type.elum.services"]', '[]', '[]', null, 'hi')$$,
                            (select mailbox from ids where who = 'ola')), 'PT403', 'nobody sends from someone else''s address');
 select expect_error(format($$select type_send_message(gen_random_uuid(), '%s', null, '[]', '[]', '[]', null, 'hi')$$,
                            (select mailbox from ids where who = 'rae')), 'PT400', 'a message needs a recipient');
 select expect_error(format($$select type_send_message(gen_random_uuid(), '%s', null, '["not an address"]', '[]', '[]', null, 'hi')$$,
                            (select mailbox from ids where who = 'rae')), 'PT400', 'recipients must be addresses');
-select expect_error(format($$select type_send_message(gen_random_uuid(), '%s', null, '["fen@type.elum.example"]', '[]', '[]', null, '  ')$$,
+select expect_error(format($$select type_send_message(gen_random_uuid(), '%s', null, '["fen@type.elum.services"]', '[]', '[]', null, '  ')$$,
                            (select mailbox from ids where who = 'rae')), 'PT400', 'a message needs words or a file');
 select expect((select count(*) from elum_notifications()) = 0, 'the sender gets no notification');
 reset role;
@@ -90,7 +90,7 @@ select type_mark_read((select thread_id from type_inbox()));
 select expect(not (select unread from type_inbox()), 'reading clears unread');
 select expect((select count(*) from type_inbox('unread')) = 0, 'Unread filter');
 -- Fen replies in the thread.
-select type_send_message(:'m2', (select id from type.mailboxes), (select thread_id from type_inbox()), '["rae@type.elum.example"]', '[]', '[]', null, 'Yes please');
+select type_send_message(:'m2', (select id from type.mailboxes), (select thread_id from type_inbox()), '["rae@type.elum.services"]', '[]', '[]', null, 'Yes please');
 select expect((select jsonb_array_length(type_thread((select thread_id from type_inbox())) -> 'messages')) = 2, 'replies stay in the thread');
 select expect((select type_thread((select thread_id from type_inbox())) #>> '{messages,1,mine}')::boolean, 'and show as mine');
 reset role;
@@ -111,8 +111,8 @@ reset role;
 select set_config('request.jwt.claim.sub', :'rae', false);
 set role authenticated;
 select type_send_message(:'m3', (select mailbox from ids where who = 'rae'), (select thread_id from type.messages where id = :'m1'),
-                         '["fen@type.elum.example"]', '[]', '["stan@type.elum.example"]', null, 'Booked for noon');
-select expect((select type_thread((select thread_id from type.messages where id = :'m1')) #>> '{messages,2,bcc,0,address}') = 'stan@type.elum.example',
+                         '["fen@type.elum.services"]', '[]', '["stan@type.elum.services"]', null, 'Booked for noon');
+select expect((select type_thread((select thread_id from type.messages where id = :'m1')) #>> '{messages,2,bcc,0,address}') = 'stan@type.elum.services',
               'the sender sees who was Bcc''d');
 reset role;
 
@@ -120,7 +120,7 @@ select set_config('request.jwt.claim.sub', :'fen', false);
 set role authenticated;
 select expect((select jsonb_array_length(type_thread((select thread_id from type.messages where id = :'m1')) #> '{messages,2,bcc}')) = 0,
               'others never see a Bcc');
-select expect(not exists (select 1 from type.participants where address = 'stan@type.elum.example'), 'nor the Bcc''d person in the thread');
+select expect(not exists (select 1 from type.participants where address = 'stan@type.elum.services'), 'nor the Bcc''d person in the thread');
 reset role;
 
 select set_config('request.jwt.claim.sub', :'stan', false);
@@ -135,7 +135,7 @@ set role authenticated;
 select expect((select type_send_message(:'m4', (select mailbox from ids where who = 'rae'), null, '[{"address": "Kai@Outside.org", "name": "Kai"}]',
                                         '[]', '[]', 'Hello', 'Nice to meet you.') ->> 'status') = 'queued', 'outside mail is queued');
 select expect((select kind from type.threads t join type.messages m on m.thread_id = t.id where m.id = :'m4') = 'email', 'as an email thread');
-select expect((select message_id from type.messages where id = :'m4') = '<' || :'m4' || '@type.elum.example>', 'with a Message-ID on the Type domain');
+select expect((select message_id from type.messages where id = :'m4') = '<' || :'m4' || '@type.elum.services>', 'with a Message-ID on the Type domain');
 reset role;
 select expect((select address from type.outbox where message_id = :'m4') = 'kai@outside.org', 'the outbox holds the outside address');
 
@@ -143,7 +143,7 @@ select set_config('request.jwt.claim.sub', :'ola', false);
 set role authenticated;
 select expect_error(format($$select type_send_message(gen_random_uuid(), '%s', null, '["kai@outside.org"]', '[]', '[]', null, 'hi')$$,
                            (select mailbox from ids where who = 'ola')), 'PT403', 'external accounts cannot email outside ELUM');
-select expect((select type_send_message(:'m5', (select mailbox from ids where who = 'ola'), null, '["rae@type.elum.example"]', '[]', '[]', null,
+select expect((select type_send_message(:'m5', (select mailbox from ids where who = 'ola'), null, '["rae@type.elum.services"]', '[]', '[]', null,
                                         'Hi Rae') ->> 'status') = 'sent', 'but they can message ELUM people');
 reset role;
 
@@ -156,22 +156,22 @@ select expect((select status from type.messages where id = :'m4') = 'delivered',
 
 -- An outside reply threads into the conversation.
 select expect((select type_receive_email(jsonb_build_object(
-  'messageId', '<reply-1@outside.org>', 'inReplyTo', '<' || :'m4' || '@type.elum.example>',
+  'messageId', '<reply-1@outside.org>', 'inReplyTo', '<' || :'m4' || '@type.elum.services>',
   'from', jsonb_build_object('address', 'kai@outside.org', 'name', 'Kai'),
-  'to', '["rae@type.elum.example"]'::jsonb, 'recipients', '["rae@type.elum.example"]'::jsonb,
+  'to', '["rae@type.elum.services"]'::jsonb, 'recipients', '["rae@type.elum.services"]'::jsonb,
   'subject', 'Re: Hello', 'text', 'Likewise!', 'html', '<p>Likewise!</p>',
   'attachments', jsonb_build_array(jsonb_build_object('path', '30000000-0000-0000-0000-000000000001/notes.pdf', 'name', 'notes.pdf', 'mime', 'application/pdf', 'bytes', 1200))
 )) ->> 'threadId')::uuid = (select thread_id from type.messages where id = :'m4'), 'replies thread by In-Reply-To');
 select type_receive_email(jsonb_build_object('messageId', '<reply-1@outside.org>', 'from', jsonb_build_object('address', 'kai@outside.org'),
-                                             'recipients', '["rae@type.elum.example"]'::jsonb, 'text', 'Likewise!'));
+                                             'recipients', '["rae@type.elum.services"]'::jsonb, 'text', 'Likewise!'));
 select expect((select count(*) from type.messages where message_id = '<reply-1@outside.org>') = 1, 'the same email twice is one message');
-select expect((select type_receive_email('{"from": {"address": "kai@outside.org"}, "recipients": ["nobody@type.elum.example"], "text": "x"}') ->> 'stored') = 'false',
+select expect((select type_receive_email('{"from": {"address": "kai@outside.org"}, "recipients": ["nobody@type.elum.services"], "text": "x"}') ->> 'stored') = 'false',
               'mail for unknown addresses is not stored');
 select expect((select type_receive_email('{"from": {"address": "kai@outside.org"}, "recipients": ["ola@example.org"], "text": "x"}') ->> 'stored') = 'false',
               'only Type addresses receive outside mail');
 -- A spoofed In-Reply-To cannot reach into someone else's conversation.
-select type_receive_email(jsonb_build_object('messageId', '<sneak@outside.org>', 'inReplyTo', '<' || :'m1' || '@type.elum.example>',
-                                             'from', jsonb_build_object('address', 'eve@outside.org'), 'recipients', '["stan@type.elum.example"]'::jsonb,
+select type_receive_email(jsonb_build_object('messageId', '<sneak@outside.org>', 'inReplyTo', '<' || :'m1' || '@type.elum.services>',
+                                             'from', jsonb_build_object('address', 'eve@outside.org'), 'recipients', '["stan@type.elum.services"]'::jsonb,
                                              'subject', 'Re: Lunch', 'text', 'let me in', 'spam', true));
 select expect((select thread_id from type.messages where message_id = '<sneak@outside.org>') <> (select thread_id from type.messages where id = :'m1'),
               'replies join only threads their sender is already in');
@@ -203,11 +203,11 @@ reset role;
 -- ------------------------------------------------------------------- drafts
 select set_config('request.jwt.claim.sub', :'rae', false);
 set role authenticated;
-select expect((select (type_save_draft(:'m6', (select mailbox from ids where who = 'rae'), 0, null, '["fen@type.elum.example"]', '[]', '[]', 'Plan', 'Fir') ->> 'version')::int) = 1,
+select expect((select (type_save_draft(:'m6', (select mailbox from ids where who = 'rae'), 0, null, '["fen@type.elum.services"]', '[]', '[]', 'Plan', 'Fir') ->> 'version')::int) = 1,
               'a new draft is version 1');
 select expect_error(format($$select type_save_draft('%s', '%s', 0, null, '[]', '[]', '[]', 'Plan', 'First')$$, :'m6', (select mailbox from ids where who = 'rae')),
                     'PT409', 'a stale save is a conflict');
-select expect((select (type_save_draft(:'m6', (select mailbox from ids where who = 'rae'), 1, null, '["fen@type.elum.example"]', '[]', '[]', 'Plan', 'First draft') ->> 'version')::int) = 2,
+select expect((select (type_save_draft(:'m6', (select mailbox from ids where who = 'rae'), 1, null, '["fen@type.elum.services"]', '[]', '[]', 'Plan', 'First draft') ->> 'version')::int) = 2,
               'saves move the version on');
 reset role;
 
@@ -231,7 +231,7 @@ reset role;
 
 select set_config('request.jwt.claim.sub', :'rae', false);
 set role authenticated;
-select type_send_message(:'m6', (select mailbox from ids where who = 'rae'), null, '["fen@type.elum.example"]', '[]', '[]', 'Plan', 'First draft');
+select type_send_message(:'m6', (select mailbox from ids where who = 'rae'), null, '["fen@type.elum.services"]', '[]', '[]', 'Plan', 'First draft');
 select expect((select jsonb_array_length(type_drafts())) = 0, 'sending removes the draft');
 reset role;
 
@@ -253,10 +253,10 @@ reset role;
 select set_config('request.jwt.claim.sub', :'rae', false);
 set role authenticated;
 select type_send_message(:'m7', (select mailbox from ids where who = 'rae'), (select thread_id from type.messages where id = :'m1'),
-                         '["fen@type.elum.example"]', '[]', '[]', null, 'One more thing');
+                         '["fen@type.elum.services"]', '[]', '[]', null, 'One more thing');
 select expect((select count(*) from type.messages where auto and body_text = 'Back Monday.') = 1, 'vacation replies come back');
 select type_send_message(gen_random_uuid(), (select mailbox from ids where who = 'rae'), (select thread_id from type.messages where id = :'m1'),
-                         '["fen@type.elum.example"]', '[]', '[]', null, 'And another');
+                         '["fen@type.elum.services"]', '[]', '[]', null, 'And another');
 select expect((select count(*) from type.messages where auto) = 1, 'once per sender');
 reset role;
 
@@ -271,7 +271,7 @@ reset role;
 
 -- --------------------------------------------------------------- inbox cards
 set role service_role;
-select type_add_card(9001, :'fen', 'write', 'Ola Owner shared “Field notes” with you', 'You can comment.', 'Open in Write', 'https://write.elum.example/d/x', :'ola');
+select type_add_card(9001, :'fen', 'write', 'Ola Owner shared “Field notes” with you', 'You can comment.', 'Open in Write', 'https://elumwrite.netlify.app/d/x', :'ola');
 select type_add_card(9001, :'fen', 'write', 'again', null, null, null, null);
 reset role;
 select expect((select count(*) from type.inbox_cards) = 1, 'one card per event');
@@ -289,7 +289,7 @@ set role authenticated;
 select expect((select count(*) from type.inbox_cards) = 0, 'cards are private');
 select expect((select count(*) from type_contacts()) >= 2, 'contacts: people you wrote with');
 select expect((select name from type_contacts('stan')) = 'Stan Stranger', 'contacts: ELUM people by name');
-select expect((select address from type_contacts('stan')) = 'stan@type.elum.example', 'found at their Type address');
+select expect((select address from type_contacts('stan')) = 'stan@type.elum.services', 'found at their Type address');
 reset role;
 
 -- ----------------------------------------------------- provider Message-IDs
@@ -297,7 +297,7 @@ reset role;
 set role service_role;
 select type_finish_outbox((select id from type.outbox where message_id = :'m4'), 'sent', '<brevo-123@smtp-relay.example>');
 select expect((type_receive_email(jsonb_build_object('messageId', '<reply-2@outside.org>', 'inReplyTo', '<brevo-123@smtp-relay.example>',
-                'from', '{"address": "kai@outside.org"}'::jsonb, 'recipients', '["rae@type.elum.example"]'::jsonb, 'text', 'Again')) ->> 'threadId')::uuid
+                'from', '{"address": "kai@outside.org"}'::jsonb, 'recipients', '["rae@type.elum.services"]'::jsonb, 'text', 'Again')) ->> 'threadId')::uuid
               = (select thread_id from type.messages where id = :'m4'), 'replies thread by the provider''s Message-ID too');
 reset role;
 
@@ -318,6 +318,35 @@ select expect((select count(*) from jsonb_array_elements(elum_me() -> 'addresses
 select expect_error($$select type_recovery_confirm('123456')$$, 'PT404', 'codes work once');
 reset role;
 select expect(elum.account_for_address('stan@personal.example') = :'stan', 'the recovery address reaches the account');
+
+-- ----------------------------------------------------------------- privacy
+-- Fen takes messages from friends and family only, and has blocked Stan.
+select set_config('request.jwt.claim.sub', :'fen', false);
+set role authenticated;
+select elum_set_privacy(null, 'known', 'close');
+select elum_set_circle(:'rae', 'friends');
+select elum_set_circle(:'stan', 'blocked');
+reset role;
+
+select set_config('request.jwt.claim.sub', :'rae', false);
+set role authenticated;
+select expect((type_send_message(gen_random_uuid(), (select mailbox from ids where who = 'rae'), null, '["fen@type.elum.services"]', '[]', '[]', null, 'Friends can write')
+               ->> 'status') = 'sent', 'friends can message');
+reset role;
+
+select set_config('request.jwt.claim.sub', :'ola', false);
+set role authenticated;
+select expect_error(format($$select type_send_message(gen_random_uuid(), '%s', null, '["fen@type.elum.services"]', '[]', '[]', null, 'hi')$$,
+                           (select mailbox from ids where who = 'ola')), 'PT403', 'people Fen does not know are told no');
+select expect((select count(*) from type_contacts('fen')) = 0, 'and cannot find Fen');
+reset role;
+
+select set_config('request.jwt.claim.sub', :'stan', false);
+set role authenticated;
+select type_send_message('20000000-0000-0000-0000-0000000000b1', (select id from type.mailboxes), null, '["fen@type.elum.services"]', '[]', '[]', null, 'let me in');
+reset role;
+select expect(not exists (select 1 from type.message_recipients r join type.mailboxes mb on mb.id = r.mailbox_id
+                          where r.message_id = '20000000-0000-0000-0000-0000000000b1' and mb.owner_id = :'fen'), 'blocked senders never reach Fen');
 
 -- ------------------------------------------------------- deleting accounts
 set role service_role;
