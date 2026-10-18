@@ -1,0 +1,307 @@
+/* App bar (64px), tool rail (60px) and the main area (handoff 8.3, 9.5). */
+.shell {
+  height: 100%;
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  grid-template-rows: var(--bar-h) minmax(0, 1fr) auto;
+  grid-template-areas:
+    'bar bar'
+    'rail main'
+    'note note';
+  background: var(--canvas);
+}
+
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -48px;
+  z-index: 3000;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--action);
+  color: var(--on-action);
+  font-weight: 600;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 8px;
+}
+
+.app-bar {
+  grid-area: bar;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 var(--space-4) 0 var(--space-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--hairline);
+}
+.app-bar__brand {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  flex: none;
+}
+.app-bar__mark {
+  display: none;
+}
+.app-bar__search {
+  flex: 1;
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 6px 0 14px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-glass);
+  border: 1.5px solid transparent;
+  color: var(--ink-muted);
+  transition: border-color var(--dur-hover) var(--ease), background-color var(--dur-hover) var(--ease);
+}
+.app-bar__search:focus-within {
+  background: var(--surface);
+  border-color: var(--action);
+  box-shadow: 0 0 0 3px var(--elum-mist);
+}
+.app-bar__search-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 15px;
+  outline: none;
+}
+.app-bar__search-input::-webkit-search-cancel-button {
+  display: none;
+}
+.app-bar__end {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  flex: none;
+}
+
+.rail {
+  grid-area: rail;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-3) 0;
+  background: var(--surface);
+  border-right: 1px solid var(--hairline);
+}
+.rail__items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rail__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  transition: background-color var(--dur-hover) var(--ease), color var(--dur-hover) var(--ease);
+}
+.rail__item:hover {
+  background: var(--surface-glass);
+  color: var(--ink);
+}
+/* Active: Type mist with a 3px mint bar on the left edge of the rail. */
+.rail__item[data-active] {
+  background: var(--accent-mist);
+  color: var(--accent-deep);
+}
+.rail__item[data-active]::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
+}
+.rail__text {
+  display: none;
+}
+.rail__badge {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: #141a2e;
+  font: 600 11px/18px var(--font-sans);
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.shell__main {
+  grid-area: main;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.shell__loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.preview-note {
+  grid-area: note;
+  margin: 0;
+  padding: 6px 16px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--ink-muted);
+  background: var(--surface);
+  border-top: 1px solid var(--hairline);
+}
+
+/* App switcher (handoff 9.6). */
+.switcher {
+  width: 300px;
+  padding: 12px;
+}
+.switcher__label {
+  margin: 4px 6px 10px;
+}
+.switcher__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.switcher__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 6px 10px;
+  border-radius: 12px;
+  color: var(--ink);
+  text-decoration: none;
+  text-align: center;
+}
+a.switcher__item:hover,
+a.switcher__item:focus-visible {
+  background: var(--surface-glass);
+}
+.switcher__item[data-here] {
+  background: var(--accent-mist);
+}
+.switcher__item[aria-disabled] {
+  opacity: 0.5;
+}
+.switcher__glyph {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--surface-glass);
+}
+.switcher__name {
+  font-weight: 600;
+  font-size: 14px;
+}
+.switcher__note {
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--ink-muted);
+}
+
+/* Phones: the rail becomes a bottom tab bar, the lockup becomes the mark. */
+@media (max-width: 560px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: var(--bar-h) minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'bar'
+      'main'
+      'rail'
+      'note';
+  }
+  .app-bar {
+    gap: var(--space-2);
+    padding: 0 8px 0 12px;
+  }
+  .app-bar__lockup {
+    display: none;
+  }
+  .app-bar__mark {
+    display: inline-flex;
+  }
+  .app-bar__end .icon-btn--round[aria-label^='Switch to'],
+  .app-bar__end .icon-btn--round[aria-label='ELUM apps'] {
+    display: none;
+  }
+  .app-bar__search {
+    min-width: 0;
+  }
+  .app-bar__search {
+    height: 40px;
+  }
+  .rail {
+    flex-direction: row;
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+    border-right: 0;
+    border-top: 1px solid var(--hairline);
+  }
+  .rail__items {
+    flex: 1;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+  .rail__item {
+    width: auto;
+    min-width: 56px;
+    height: 48px;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0 6px;
+  }
+  .rail__item--bottom {
+    min-width: 56px;
+  }
+  .rail__text {
+    display: block;
+    font-size: 11px;
+    line-height: 13px;
+    font-weight: 600;
+  }
+  .rail__item[data-active]::before {
+    left: 30%;
+    right: 30%;
+    top: -4px;
+    bottom: auto;
+    width: auto;
+    height: 3px;
+    border-radius: 0 0 3px 3px;
+  }
+  .rail__badge {
+    top: 0;
+    right: 4px;
+  }
+}

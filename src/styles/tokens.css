@@ -1,0 +1,79 @@
+/* ELUM design tokens. Light is the default; add data-theme="dark" on <html> for dark. */
+:root, [data-theme="light"] {
+  --elum-blue: #7093f8;
+  --elum-blue-deep: #3b5bd6;
+  --elum-glow: #bacafc;
+  --elum-mist: #eef2ff;
+  --write: #f59a52;
+  --write-deep: #a84d17;
+  --type: #3fc4a0;
+  --type-deep: #187a5f;
+  --browse: #9b84ee;
+  --browse-deep: #604590;
+  --make: #ec7fa9;
+  --make-deep: #a8335f;
+  --store: #e9b949;
+  --store-deep: #7f5c00;
+  --surface: #ffffff;
+  --surface-glass: #f4f5f8;
+  --ink: #141a2e;
+  --ink-muted: #5a6178;
+  --hairline: #e2e5ee;
+  --border-control: #848ba0;
+  --action: var(--elum-blue-deep);
+  --on-action: #ffffff;
+  --shadow-glass: 0 1px 2px rgba(20,26,46,0.06), 0 12px 32px rgba(112,147,248,0.16);
+  --shadow-glow: 0 0 0 1px rgba(186,202,252,0.9), 0 0 24px rgba(112,147,248,0.35);
+}
+[data-theme="dark"] {
+  --elum-blue: #7093f8;
+  --elum-blue-deep: #8fa9fa;
+  --elum-glow: #34437a;
+  --elum-mist: #1b2340;
+  --write: #f59a52;
+  --write-deep: #ffb27a;
+  --type: #3fc4a0;
+  --type-deep: #7ce0c3;
+  --browse: #9b84ee;
+  --browse-deep: #b9a7f5;
+  --make: #ec7fa9;
+  --make-deep: #f6a9c6;
+  --store: #e9b949;
+  --store-deep: #f5d58a;
+  --surface: #0e1220;
+  --surface-glass: #171c2e;
+  --ink: #eef1fa;
+  --ink-muted: #a3aac0;
+  --hairline: #2a3149;
+  --border-control: #6b7392;
+  --action: var(--elum-blue);
+  --on-action: #0e1220;
+  --shadow-glass: 0 1px 2px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.45);
+  --shadow-glow: 0 0 0 1px rgba(112,147,248,0.5), 0 0 28px rgba(112,147,248,0.3);
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+  --radius-pill: 999px;
+  --font-display: Sora, "Avenir Next", system-ui, sans-serif;
+  --font-sans: Manrope, "Helvetica Neue", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+.display-xl { font-family: var(--font-display); font-size: 72px; line-height: 76px; font-weight: 300; letter-spacing: -0.02em; }
+.display-l { font-family: var(--font-display); font-size: 48px; line-height: 54px; font-weight: 300; letter-spacing: -0.015em; }
+.heading { font-family: var(--font-display); font-size: 28px; line-height: 36px; font-weight: 400; letter-spacing: -0.01em; }
+.title { font-family: var(--font-sans); font-size: 18px; line-height: 26px; font-weight: 600; letter-spacing: 0; }
+.body { font-family: var(--font-sans); font-size: 16px; line-height: 26px; font-weight: 400; letter-spacing: 0; }
+.body-sm { font-family: var(--font-sans); font-size: 14px; line-height: 22px; font-weight: 400; letter-spacing: 0; }
+.label { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.14em; }
+.mono { font-family: var(--font-mono); font-size: 13px; line-height: 20px; font-weight: 400; letter-spacing: 0; }
+.label { text-transform: uppercase; }
