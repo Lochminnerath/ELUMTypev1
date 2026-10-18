@@ -16,6 +16,9 @@ to `20261020000000_elum_platform.sql`. Then, in order:
    service and adds the `type-attachments` bucket.
 4. ELUMAccountsV1's `migrations/20261022000000_elum_accounts.sql` (pictures, circles, privacy), then
    `migrations/20261022100000_type_privacy.sql`: Type respects who may message and find each person.
+5. `migrations/20261023000000_type_move_to_services_domain.sql`: moves Type accounts made on
+   type.elum.example to type.elum.services, so they can sign in with their handle again. Safe to
+   run more than once.
 
 Then set where Type lives, for links in notifications:
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cookieStorage } from './cookieStorage';
+import { cookieStorage, usableCookieDomain } from './cookieStorage';
 
 /** A tiny cookie jar that understands Max-Age=0. */
 function fakeDocument() {
@@ -39,5 +39,21 @@ describe('shared sign-in cookies', () => {
     s.removeItem('elum-auth');
     expect(doc.jar.size).toBe(0);
     expect(s.getItem('elum-auth')).toBeNull();
+  });
+});
+
+describe('usableCookieDomain', () => {
+  it('shares cookies across the subdomains of a domain you own', () => {
+    expect(usableCookieDomain('.elum.services', 'write.elum.services')).toBe('.elum.services');
+    expect(usableCookieDomain('elum.services', 'elum.services')).toBe('.elum.services');
+  });
+
+  it('falls back to site storage when a browser would refuse the cookie', () => {
+    // Set for elum.services but served from netlify.app: every sign-in would vanish.
+    expect(usableCookieDomain('.elum.services', 'elumwrite.netlify.app')).toBeNull();
+    // netlify.app is a public suffix; its sites cannot share cookies.
+    expect(usableCookieDomain('.netlify.app', 'elumwrite.netlify.app')).toBeNull();
+    expect(usableCookieDomain('', 'write.elum.services')).toBeNull();
+    expect(usableCookieDomain(undefined, 'write.elum.services')).toBeNull();
   });
 });
