@@ -43,3 +43,9 @@ npm run build
 | `supabase/platform/` | Copies of Write's and the platform's migrations, applied only in tests |
 | `supabase/platform-changes/` | Platform changes Type needs, to move into the platform migrations |
 | `docs/TYPE.md` | How Type works with the platform and with Write |
+
+## What's new
+
+`src/whatsnew/releases.ts` lists what changed, newest first. When an update ships, add a release at
+the top with a new id: everyone sees it once, the next time they open Type, and can read every
+release again from the account menu (What's new).

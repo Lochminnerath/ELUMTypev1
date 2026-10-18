@@ -1,7 +1,6 @@
 import { Archive, Contact, Inbox, Mail, Search, Settings, X, type LucideIcon } from 'lucide-react';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate, useSearchParams } from 'react-router';
-import { api } from '../api';
 import { TypeLockup, TypeMark } from '../components/Brand';
 import { Loader } from '../components/Loader';
 import { NotificationBell } from '../components/NotificationBell';
@@ -166,11 +165,6 @@ export function Shell({ children }: { children: ReactNode }) {
         {start ? children : <div className="shell__loading"><Loader size={48} label="Opening your inbox" /></div>}
       </main>
 
-      {api.mode === 'local' && (
-        <p className="preview-note" role="note">
-          Preview: messages stay in this browser. Email to outside addresses is simulated.
-        </p>
-      )}
       {start && compose && <Compose key={compose.draft.id ?? 'new'} request={compose} />}
     </div>
   );

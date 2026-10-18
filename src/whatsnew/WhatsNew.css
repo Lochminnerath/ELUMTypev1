@@ -1,0 +1,29 @@
+.whats-new {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.whats-new__release + .whats-new__release {
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--hairline);
+}
+.whats-new__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 26px;
+}
+.whats-new__date {
+  margin: 2px 0 0;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+.whats-new__items {
+  margin: var(--space-3) 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  line-height: 22px;
+}

@@ -1,9 +1,10 @@
-import { CircleUser, LogOut, Monitor, Moon, PenLine, Sun } from 'lucide-react';
+import { CircleUser, LogOut, Megaphone, Monitor, Moon, PenLine, Sun } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { api, errorMessage } from '../api';
 import { useAuth, useUser } from '../auth/AuthProvider';
 import { useTheme } from '../theme/ThemeProvider';
+import { openWhatsNew } from '../whatsnew/WhatsNew';
 import { Avatar } from './Avatar';
 import { Dialog } from './Dialog';
 import { Menu } from './Menu';
@@ -84,6 +85,7 @@ export function UserMenu() {
                 },
               ]
             : []),
+          { label: "What's new", icon: <Megaphone {...ICON} />, onSelect: openWhatsNew },
           'separator',
           {
             label: 'Sign out',

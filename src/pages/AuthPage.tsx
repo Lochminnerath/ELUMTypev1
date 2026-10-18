@@ -264,12 +264,6 @@ export function AuthPage({ mode }: { mode: Mode }) {
           <p className="auth__switch">
             {isSignUp ? 'Already have an ELUM account?' : 'New to ELUM?'} <Link to={switchHref}>{isSignUp ? 'Sign in' : 'Create an account'}</Link>
           </p>
-
-          {api.mode === 'local' && (
-            <p className="auth__local muted">
-              Preview mode: accounts and messages are kept in this browser until ELUM is connected. Create two accounts to message between them.
-            </p>
-          )}
         </form>
       </main>
     </div>

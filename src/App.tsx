@@ -13,6 +13,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { Shell } from './shell/Shell';
 import { TypeProvider } from './state/TypeProvider';
 import { ThemeProvider } from './theme/ThemeProvider';
+import { WhatsNew } from './whatsnew/WhatsNew';
 
 function SignedIn({ children }: { children: React.ReactNode }) {
   return (
@@ -45,6 +46,7 @@ export function App() {
             </ErrorBoundary>
           </BrowserRouter>
           <TooltipLayer />
+          <WhatsNew />
         </AuthProvider>
       </ToastProvider>
     </ThemeProvider>

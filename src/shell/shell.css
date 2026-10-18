@@ -164,17 +164,6 @@
   align-items: center;
   justify-content: center;
 }
-.preview-note {
-  grid-area: note;
-  margin: 0;
-  padding: 6px 16px;
-  font-size: 12px;
-  text-align: center;
-  color: var(--ink-muted);
-  background: var(--surface);
-  border-top: 1px solid var(--hairline);
-}
-
 /* App switcher (handoff 9.6). */
 .switcher {
   width: 300px;
