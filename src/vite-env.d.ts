@@ -13,6 +13,7 @@ interface ImportMetaEnv {
   readonly VITE_ELUM_WRITE_URL?: string;
   /** Where Type itself is hosted. Defaults to https://elumtype.netlify.app */
   readonly VITE_ELUM_TYPE_URL?: string;
+  readonly VITE_ELUM_MAKE_URL?: string;
   /** ELUM Account (such as https://elumaccounts.netlify.app). Set it to sign in through Accounts. */
   readonly VITE_ELUM_ACCOUNT_URL?: string;
 }

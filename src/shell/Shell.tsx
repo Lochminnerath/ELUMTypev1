@@ -8,7 +8,7 @@ import { UserMenu } from '../components/UserMenu';
 import { Compose } from '../compose/Compose';
 import { useType } from '../state/TypeProvider';
 import { ThemeToggle } from '../theme/ThemeToggle';
-import { AppSwitcher } from './AppSwitcher';
+import { ElumLauncher } from '../components/ElumLauncher';
 import './shell.css';
 
 interface RailItem {
@@ -118,7 +118,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </form>
         )}
         <div className="app-bar__end">
-          <AppSwitcher />
+          <ElumLauncher />
           <NotificationBell />
           <ThemeToggle />
           <UserMenu />

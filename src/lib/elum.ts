@@ -12,11 +12,14 @@ const clean = (v: string | undefined) => (v?.trim() ? v.trim().replace(/\/+$/, '
 export const ACCOUNT_URL = clean(env.VITE_ELUM_ACCOUNT_URL);
 export const WRITE_URL = clean(env.VITE_ELUM_WRITE_URL) ?? 'https://elumwrite.netlify.app';
 export const TYPE_URL = clean(env.VITE_ELUM_TYPE_URL) ?? 'https://elumtype.netlify.app';
+/** Where ELUM Account lives, for the launcher, even when sign-in does not go through it. */
+export const ACCOUNT_HOME = ACCOUNT_URL ?? 'https://elumaccounts.netlify.app';
+export const MAKE_URL = clean(env.VITE_ELUM_MAKE_URL) ?? 'https://elummake.netlify.app';
 
 /** Signing in goes through ELUM Account when it is configured and Supabase is connected. */
 export const accountsSignIn = !!ACCOUNT_URL && api.mode === 'remote';
 
-const ELUM_ORIGINS = [ACCOUNT_URL, WRITE_URL, TYPE_URL].filter(Boolean).map((u) => new URL(u!).origin);
+const ELUM_ORIGINS = [ACCOUNT_URL, WRITE_URL, TYPE_URL, MAKE_URL].filter(Boolean).map((u) => new URL(u!).origin);
 const TRIED = 'elum.handoff.tried';
 
 /** Sends a signed-out visitor to ELUM Account, which sends them back signed in to `next`. */

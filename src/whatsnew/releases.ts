@@ -35,6 +35,11 @@ export const RELEASES: Release[] = [
     intro: "Small touches that make Type feel like part of the ELUM family.",
     features: [
       {
+        title: 'Move between apps',
+        text: 'Open the ELUM apps window from the dots at the top of the page, and jump to Write, Type, Make or your account in one click.',
+        art: 'spark',
+      },
+      {
         title: "The right icon, everywhere",
         text: "Browsers now show the Type icon in your tabs and bookmarks, matching Write, Make and ELUM Account.",
         art: 'mark',
