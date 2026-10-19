@@ -1,24 +1,5 @@
-import {
-  Archive,
-  ArrowLeft,
-  Bell,
-  BellOff,
-  ChevronDown,
-  ChevronUp,
-  Download,
-  Ellipsis,
-  Forward,
-  ImageOff,
-  Inbox,
-  MailOpen,
-  Paperclip,
-  Reply,
-  ReplyAll,
-  ShieldAlert,
-  ShieldCheck,
-  Trash2,
-  TriangleAlert,
-} from 'lucide-react';
+import { ArrowLeft, Bell, BellOff, ChevronDown, ChevronUp, Ellipsis, ImageOff, Paperclip, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { ArchiveIcon, DeleteIcon, DownloadIcon, ForwardIcon, ReplyAllIcon, ReplyIcon, RestoreIcon, SpamIcon, UnreadIcon } from '../components/icons/ElumIcons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { api, errorMessage, type Address, type Attachment, type Folder, type Message, type Thread } from '../api';
@@ -174,16 +155,16 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
         <div className="thread__actions">
           {folder === 'inbox' ? (
             <button type="button" className="icon-btn icon-btn--round" aria-label="Archive" data-tip="Archive" onClick={() => void move('archive', 'Archived')}>
-              <Archive {...ICON} />
+              <ArchiveIcon {...ICON} />
             </button>
           ) : (
             <button type="button" className="icon-btn icon-btn--round" aria-label="Move to inbox" data-tip="Move to inbox" onClick={() => void move('inbox', 'Moved to inbox')}>
-              <Inbox {...ICON} />
+              <RestoreIcon {...ICON} />
             </button>
           )}
           {folder !== 'trash' && (
             <button type="button" className="icon-btn icon-btn--round" aria-label="Delete" data-tip="Delete" onClick={() => void move('trash', 'Moved to trash')}>
-              <Trash2 {...ICON} />
+              <DeleteIcon {...ICON} />
             </button>
           )}
           <Menu
@@ -192,7 +173,7 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
             items={[
               {
                 label: 'Mark as unread',
-                icon: <MailOpen size={16} strokeWidth={1.75} />,
+                icon: <UnreadIcon size={16} strokeWidth={1.75} />,
                 onSelect: () =>
                   void api.markRead(thread.id, false).then(() => {
                     onChanged();
@@ -205,7 +186,7 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
                 : { label: 'Mute', hint: 'No notifications for this conversation', icon: <BellOff size={16} strokeWidth={1.75} />, onSelect: () => void api.setMuted(thread.id, true).then(load) },
               folder === 'spam'
                 ? { label: 'Not spam', icon: <ShieldCheck size={16} strokeWidth={1.75} />, onSelect: () => void move('inbox', 'Moved to inbox') }
-                : { label: 'Report spam', icon: <ShieldAlert size={16} strokeWidth={1.75} />, onSelect: () => void move('spam', 'Moved to spam') },
+                : { label: 'Report spam', icon: <SpamIcon size={16} strokeWidth={1.75} />, onSelect: () => void move('spam', 'Moved to spam') },
             ]}
             trigger={(props) => (
               <button type="button" className="icon-btn icon-btn--round" aria-label="More actions" data-tip="More" {...props}>
@@ -361,13 +342,13 @@ function EmailCard({
         </time>
         <div className="email-card__actions">
           <button type="button" className="icon-btn" aria-label="Reply" data-tip="Reply" onClick={onReply}>
-            <Reply size={16} strokeWidth={1.75} />
+            <ReplyIcon size={16} strokeWidth={1.75} />
           </button>
           <button type="button" className="icon-btn" aria-label="Reply all" data-tip="Reply all" onClick={onReplyAll}>
-            <ReplyAll size={16} strokeWidth={1.75} />
+            <ReplyAllIcon size={16} strokeWidth={1.75} />
           </button>
           <button type="button" className="icon-btn" aria-label="Forward" data-tip="Forward" onClick={onForward}>
-            <Forward size={16} strokeWidth={1.75} />
+            <ForwardIcon size={16} strokeWidth={1.75} />
           </button>
         </div>
       </header>
@@ -470,7 +451,7 @@ function Attachments({ list }: { list: Attachment[] }) {
             <Paperclip size={14} strokeWidth={2} aria-hidden="true" />
             <span className="attachment-chip__name">{a.name}</span>
             <span className="attachment-chip__size">{formatBytes(a.bytes)}</span>
-            <Download size={14} strokeWidth={2} aria-label="Download" />
+            <DownloadIcon size={14} strokeWidth={2} aria-label="Download" />
           </button>
         </li>
       ))}

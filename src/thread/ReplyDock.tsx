@@ -1,4 +1,5 @@
-import { Maximize2, Paperclip, ReplyAll, SendHorizontal, X } from 'lucide-react';
+import { Maximize2, Paperclip, SendHorizontal, X } from 'lucide-react';
+import { ReplyAllIcon } from '../components/icons/ElumIcons';
 import { useRef, useState } from 'react';
 import { errorMessage, isApiError, type Address, type Message, type Thread } from '../api';
 import { displayName, replySubject } from '../api/validation';
@@ -111,7 +112,7 @@ export function ReplyDock({
             data-tip={all ? 'Reply all' : 'Reply to sender'}
             onClick={() => setAll((v) => !v)}
           >
-            <ReplyAll {...ICON} />
+            <ReplyAllIcon {...ICON} />
           </button>
         )}
         <label htmlFor="dock-text" className="visually-hidden">

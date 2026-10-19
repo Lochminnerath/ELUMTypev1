@@ -35,6 +35,16 @@ export const RELEASES: Release[] = [
     intro: "Small touches that make Type feel like part of the ELUM family.",
     features: [
       {
+        title: 'Approve new sign-ins',
+        text: 'Turn it on in ELUM Account, under Security. Anyone signing in with your password then waits until you pick the matching number on a device you are signed in to.',
+        art: 'check',
+      },
+      {
+        title: 'Every action, its own symbol',
+        text: 'Archive, delete, share, reply, download and more each have their own ELUM symbol and colour, so you can tell them apart at a glance.',
+        art: 'layers',
+      },
+      {
         title: 'Move between apps',
         text: 'Open the ELUM apps window from the dots at the top of the page, and jump to Write, Type, Make or your account in one click.',
         art: 'spark',

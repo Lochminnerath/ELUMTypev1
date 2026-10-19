@@ -1,4 +1,5 @@
-import { CircleUser, LogOut, Megaphone, Monitor, Moon, PenLine, Sun } from 'lucide-react';
+import { CircleUser, Megaphone, Monitor, Moon, PenLine, Sun } from 'lucide-react';
+import { SignOutIcon } from './icons/ElumIcons';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { api, errorMessage } from '../api';
@@ -89,7 +90,7 @@ export function UserMenu() {
           'separator',
           {
             label: 'Sign out',
-            icon: <LogOut {...ICON} />,
+            icon: <SignOutIcon {...ICON} />,
             onSelect: async () => {
               await signOut();
               // Signed in through ELUM Account: sign out there too, then come back.

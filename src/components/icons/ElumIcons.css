@@ -1,0 +1,39 @@
+/* The colour of each ELUM action icon's coloured part. */
+:root {
+  --elum-icon-archive: #2f8fd0;
+  --elum-icon-delete: #e5484d;
+  --elum-icon-share: #3b5bd6;
+  --elum-icon-restore: #2e9e6b;
+  --elum-icon-spam: #e8833a;
+  --elum-icon-unread: #8b6cf0;
+  --elum-icon-reply: #3fc4a0;
+  --elum-icon-reply-all: #3fc4a0;
+  --elum-icon-forward: #7093f8;
+  --elum-icon-download: #2e9e6b;
+  --elum-icon-duplicate: #9b84ee;
+  --elum-icon-link: #3b5bd6;
+  --elum-icon-star: #e9b949;
+  --elum-icon-rename: #f59a52;
+  --elum-icon-new: #3b5bd6;
+  --elum-icon-sign-out: #e5484d;
+  --elum-icon-print: #2f8fd0;
+  --elum-icon-invite: #3fc4a0;
+}
+[data-theme='dark'] {
+  --elum-icon-archive: #5fb0e6;
+  --elum-icon-delete: #ff6b6f;
+  --elum-icon-share: #8fa9fa;
+  --elum-icon-restore: #4cc38a;
+  --elum-icon-spam: #f5a25d;
+  --elum-icon-unread: #a993ff;
+  --elum-icon-forward: #8fa9fa;
+  --elum-icon-download: #4cc38a;
+  --elum-icon-link: #8fa9fa;
+  --elum-icon-new: #7093f8;
+  --elum-icon-sign-out: #ff6b6f;
+  --elum-icon-print: #5fb0e6;
+}
+.elum-icon {
+  flex: none;
+  overflow: visible;
+}

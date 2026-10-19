@@ -11,6 +11,7 @@ export type ApiErrorCode =
   | 'storage_full'
   | 'rate_limited'
   | 'network'
+  | 'approval_required'
   | 'server';
 
 const STATUS: Record<ApiErrorCode, number> = {
@@ -26,6 +27,7 @@ const STATUS: Record<ApiErrorCode, number> = {
   storage_full: 507,
   rate_limited: 429,
   network: 0,
+  approval_required: 403,
   server: 500,
 };
 

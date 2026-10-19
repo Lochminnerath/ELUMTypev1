@@ -1,4 +1,5 @@
-import { CloudCheck, CloudOff, Maximize2, Minimize2, Paperclip, SendHorizontal, Trash2, TriangleAlert, X } from 'lucide-react';
+import { CloudCheck, CloudOff, Maximize2, Minimize2, Paperclip, SendHorizontal, TriangleAlert, X } from 'lucide-react';
+import { DeleteIcon } from '../components/icons/ElumIcons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { errorMessage, isApiError, type DraftInput } from '../api';
@@ -256,7 +257,7 @@ export function Compose({ request }: { request: ComposeRequest }) {
           <Paperclip {...ICON} />
         </button>
         <button type="button" className="icon-btn icon-btn--round" aria-label="Discard draft" data-tip="Discard draft" onClick={() => void discard()}>
-          <Trash2 {...ICON} />
+          <DeleteIcon {...ICON} />
         </button>
       </footer>
     </section>

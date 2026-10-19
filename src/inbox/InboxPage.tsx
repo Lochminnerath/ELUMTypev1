@@ -1,4 +1,5 @@
-import { Archive, BadgeCheck, BellOff, Paperclip, SquarePen } from 'lucide-react';
+import { BadgeCheck, BellOff, Paperclip, SquarePen } from 'lucide-react';
+import { ArchiveIcon } from '../components/icons/ElumIcons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { api, errorMessage, type InboxCard, type InboxView, type ThreadSummary } from '../api';
@@ -269,7 +270,7 @@ function CardRow({ card, onChange }: { card: InboxCard; onChange: () => void }) 
           )}
           {!card.archivedAt ? (
             <button type="button" className="icon-btn" aria-label="Archive" data-tip="Archive" onClick={() => mark({ read: true, archived: true })}>
-              <Archive size={16} strokeWidth={1.75} />
+              <ArchiveIcon size={16} strokeWidth={1.75} />
             </button>
           ) : (
             <button type="button" className="elum-btn elum-btn--quiet elum-btn--sm" onClick={() => mark({ archived: false })}>

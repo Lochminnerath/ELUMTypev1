@@ -28,6 +28,7 @@ import type {
 } from '../types';
 import { checkPassword, cleanName, handleProblem, isEmail, loginToEmail } from '../validation';
 import { cookieStorage, usableCookieDomain } from './cookieStorage';
+import { PENDING_ROLE, tokenRole } from '../../security/approvals';
 
 /**
  * ELUM Type on the shared ELUM Supabase project.
@@ -542,6 +543,10 @@ export class SupabaseApi implements TypeApi {
   }
 
   private async sessionFor(session: AuthSession): Promise<Session> {
+    // Waiting for approval from another device (ELUM Account > Security): nothing else answers it.
+    if (tokenRole(session.access_token) === PENDING_ROLE) {
+      throw new ApiError('approval_required', 'Approve this sign-in on a device you are already signed in to.');
+    }
     const load = () =>
       this.sb.from('profiles').select('id, name, email, color, account_type, handle, created_at').eq('id', session.user.id).maybeSingle<ProfileRow>();
     let { data, error } = await load();

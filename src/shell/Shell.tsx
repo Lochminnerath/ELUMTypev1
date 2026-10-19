@@ -1,4 +1,6 @@
-import { Archive, Contact, Inbox, Mail, Search, Settings, X, type LucideIcon } from 'lucide-react';
+import type { ComponentType } from 'react';
+import { Contact, Inbox, Mail, Search, Settings, X } from 'lucide-react';
+import { ArchiveIcon } from '../components/icons/ElumIcons';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate, useSearchParams } from 'react-router';
 import { TypeLockup, TypeMark } from '../components/Brand';
@@ -14,7 +16,7 @@ import './shell.css';
 interface RailItem {
   to: string;
   label: string;
-  icon: LucideIcon;
+  icon: ComponentType<{ size?: number; strokeWidth?: number }>;
   badge?: number;
   match?: (path: string, view: string | null) => boolean;
 }
@@ -45,7 +47,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const items: RailItem[] = [
     { to: '/', label: 'Inbox', icon: Inbox, badge: counts.unread + counts.cards, match: (p) => p === '/' || p.startsWith('/t/') || p.startsWith('/view/elum') || p.startsWith('/view/email') },
     { to: '/view/unread', label: 'Unread', icon: Mail },
-    { to: '/view/archive', label: 'Archived', icon: Archive },
+    { to: '/view/archive', label: 'Archived', icon: ArchiveIcon },
     { to: '/contacts', label: 'Contacts', icon: Contact },
   ];
 

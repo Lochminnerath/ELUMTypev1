@@ -14,6 +14,7 @@ import { Shell } from './shell/Shell';
 import { TypeProvider } from './state/TypeProvider';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { WhatsNew } from './whatsnew/WhatsNew';
+import { SecurityLayer } from './security/SecurityLayer';
 
 function SignedIn({ children }: { children: React.ReactNode }) {
   return (
@@ -47,6 +48,7 @@ export function App() {
           </BrowserRouter>
           <TooltipLayer />
           <WhatsNew />
+          <SecurityLayer />
         </AuthProvider>
       </ToastProvider>
     </ThemeProvider>
