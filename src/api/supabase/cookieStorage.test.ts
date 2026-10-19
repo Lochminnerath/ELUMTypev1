@@ -53,7 +53,12 @@ describe('usableCookieDomain', () => {
     expect(usableCookieDomain('.elum.services', 'elumwrite.netlify.app')).toBeNull();
     // netlify.app is a public suffix; its sites cannot share cookies.
     expect(usableCookieDomain('.netlify.app', 'elumwrite.netlify.app')).toBeNull();
-    expect(usableCookieDomain('', 'write.elum.services')).toBeNull();
-    expect(usableCookieDomain(undefined, 'write.elum.services')).toBeNull();
+    expect(usableCookieDomain('', 'localhost')).toBeNull();
+    expect(usableCookieDomain(undefined, 'elumtype.netlify.app')).toBeNull();
+  });
+
+  it('shares the ELUM sign-in on elum.services even when the setting is missing', () => {
+    expect(usableCookieDomain(undefined, 'type.elum.services')).toBe('.elum.services');
+    expect(usableCookieDomain('', 'write.elum.services')).toBe('.elum.services');
   });
 });
