@@ -1,4 +1,5 @@
-import { CircleUser, Megaphone, Monitor, Moon, PenLine, Sun } from 'lucide-react';
+import { CircleUser, Megaphone, Monitor, Moon, Sun } from 'lucide-react';
+import { RenameIcon } from './icons/ElumIcons';
 import { SignOutIcon } from './icons/ElumIcons';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -64,12 +65,12 @@ export function UserMenu() {
             ? {
                 label: 'Profile and picture',
                 hint: 'In your ELUM account',
-                icon: <PenLine {...ICON} />,
+                icon: <RenameIcon {...ICON} />,
                 onSelect: () => openAccount('/profile'),
               }
             : {
                 label: 'Edit your name',
-                icon: <PenLine {...ICON} />,
+                icon: <RenameIcon {...ICON} />,
                 onSelect: () => {
                   setName(user.name);
                   setError(null);

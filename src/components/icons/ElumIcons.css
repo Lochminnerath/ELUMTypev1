@@ -18,6 +18,20 @@
   --elum-icon-sign-out: #e5484d;
   --elum-icon-print: #2f8fd0;
   --elum-icon-invite: #3fc4a0;
+  --elum-icon-remove-person: #e5484d;
+  --elum-icon-send: #7093f8;
+  --elum-icon-compose: #f59a52;
+  --elum-icon-private: #8b6cf0;
+  --elum-icon-unlocked: #2e9e6b;
+  --elum-icon-visible: #3fc4a0;
+  --elum-icon-hidden: #8a93a8;
+  --elum-icon-saved: #2e9e6b;
+  --elum-icon-offline: #e8833a;
+  --elum-icon-verified: #3b5bd6;
+  --elum-icon-warning: #e8833a;
+  --elum-icon-attach: #9b84ee;
+  --elum-icon-present: #ec7fa9;
+  --elum-icon-open: #7093f8;
 }
 [data-theme='dark'] {
   --elum-icon-archive: #5fb0e6;
@@ -32,6 +46,15 @@
   --elum-icon-new: #7093f8;
   --elum-icon-sign-out: #ff6b6f;
   --elum-icon-print: #5fb0e6;
+  --elum-icon-remove-person: #ff6b6f;
+  --elum-icon-send: #8fa9fa;
+  --elum-icon-unlocked: #4cc38a;
+  --elum-icon-hidden: #9aa3b8;
+  --elum-icon-saved: #4cc38a;
+  --elum-icon-offline: #f5a25d;
+  --elum-icon-verified: #8fa9fa;
+  --elum-icon-warning: #f5a25d;
+  --elum-icon-open: #8fa9fa;
 }
 .elum-icon {
   flex: none;

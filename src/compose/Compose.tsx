@@ -1,4 +1,5 @@
-import { CloudCheck, CloudOff, Maximize2, Minimize2, Paperclip, SendHorizontal, TriangleAlert, X } from 'lucide-react';
+import { Maximize2, Minimize2, X } from 'lucide-react';
+import { AttachIcon, OfflineIcon, SavedIcon, SendIcon, WarningIcon } from '../components/icons/ElumIcons';
 import { DeleteIcon } from '../components/icons/ElumIcons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -200,7 +201,7 @@ export function Compose({ request }: { request: ComposeRequest }) {
         <ul className="attachment-list" aria-label="Attachments">
           {d.attachments.map((a) => (
             <li key={a.id} className="attachment-chip">
-              <Paperclip size={14} strokeWidth={2} aria-hidden="true" />
+              <AttachIcon size={14} strokeWidth={2} aria-hidden="true" />
               <span className="attachment-chip__name">{a.name}</span>
               <span className="attachment-chip__size">{formatBytes(a.bytes)}</span>
               <button type="button" className="address-chip__remove" aria-label={`Remove ${a.name}`} onClick={() => void d.removeAttachment(a)}>
@@ -213,7 +214,7 @@ export function Compose({ request }: { request: ComposeRequest }) {
 
       {d.state === 'conflict' && (
         <div className="compose__notice" role="alert">
-          <TriangleAlert size={16} strokeWidth={2} aria-hidden="true" />
+          <WarningIcon size={16} strokeWidth={2} aria-hidden="true" />
           <span>This draft changed on another device.</span>
           <button type="button" className="elum-btn elum-btn--quiet elum-btn--sm" onClick={d.keepMine}>
             Keep mine
@@ -225,7 +226,7 @@ export function Compose({ request }: { request: ComposeRequest }) {
       )}
       {outside.length > 0 && !from.canEmail && (
         <p className="compose__notice" role="note">
-          <TriangleAlert size={16} strokeWidth={2} aria-hidden="true" />
+          <WarningIcon size={16} strokeWidth={2} aria-hidden="true" />
           This address reaches ELUM people only. Get an ELUM address to email {outside[0].address}.
         </p>
       )}
@@ -237,7 +238,7 @@ export function Compose({ request }: { request: ComposeRequest }) {
 
       <footer className="compose__foot">
         <button type="button" className="elum-btn elum-btn--product" disabled={sending} onClick={() => void send()}>
-          {sending ? <Loader size={20} label="Sending" /> : <SendHorizontal {...ICON} />}
+          {sending ? <Loader size={20} label="Sending" /> : <SendIcon {...ICON} />}
           Send
         </button>
         <span className="kbd compose__hint">Ctrl+Enter</span>
@@ -254,7 +255,7 @@ export function Compose({ request }: { request: ComposeRequest }) {
           }}
         />
         <button type="button" className="icon-btn icon-btn--round compose__attach" aria-label="Attach files" data-tip="Attach files" onClick={() => fileRef.current?.click()}>
-          <Paperclip {...ICON} />
+          <AttachIcon {...ICON} />
         </button>
         <button type="button" className="icon-btn icon-btn--round" aria-label="Discard draft" data-tip="Discard draft" onClick={() => void discard()}>
           <DeleteIcon {...ICON} />
@@ -275,13 +276,13 @@ export function SaveStatus({ state }: { state: ReturnType<typeof useDraft>['stat
       )}
       {state === 'saved' && (
         <>
-          <CloudCheck size={16} strokeWidth={1.75} aria-hidden="true" />
+          <SavedIcon size={16} strokeWidth={1.75} aria-hidden="true" />
           <span>Draft saved</span>
         </>
       )}
       {state === 'error' && (
         <span className="save-status__error">
-          <CloudOff size={16} strokeWidth={1.75} aria-hidden="true" />
+          <OfflineIcon size={16} strokeWidth={1.75} aria-hidden="true" />
           Not saved yet. Trying again
         </span>
       )}

@@ -1,4 +1,5 @@
-import { AtSign, ExternalLink } from 'lucide-react';
+import { AtSign } from 'lucide-react';
+import { OpenIcon } from '../components/icons/ElumIcons';
 import { useEffect, useState, type FormEvent } from 'react';
 import { api, errorMessage, isApiError, type Mailbox } from '../api';
 import { useAuth, useUser } from '../auth/AuthProvider';
@@ -62,7 +63,7 @@ export function SettingsPage() {
           <>
             <p className="muted settings-hint">Your name, picture, language and who can message you live in your ELUM account, for every app.</p>
             <button type="button" className="elum-btn elum-btn--secondary elum-btn--sm" onClick={() => openAccount('/profile')}>
-              Edit your profile <ExternalLink size={14} strokeWidth={1.75} />
+              Edit your profile <OpenIcon size={14} strokeWidth={1.75} />
             </button>
           </>
         ) : (
@@ -109,7 +110,7 @@ export function SettingsPage() {
               </p>
               {ACCOUNT_URL && (
                 <button type="button" className="elum-btn elum-btn--secondary elum-btn--sm" onClick={() => openAccount('/addresses')}>
-                  Your addresses <ExternalLink size={14} strokeWidth={1.75} />
+                  Your addresses <OpenIcon size={14} strokeWidth={1.75} />
                 </button>
               )}
             </div>
@@ -179,7 +180,7 @@ export function SettingsPage() {
           <h2 id="s-account" className="settings-section__title">Your ELUM account</h2>
           <p className="muted settings-hint">Password, people and privacy, which notifications reach you, and deleting your account. One account for Write, Type and the rest.</p>
           <button type="button" className="elum-btn elum-btn--secondary elum-btn--sm" onClick={() => openAccount('/')}>
-            Open your ELUM account <ExternalLink size={14} strokeWidth={1.75} />
+            Open your ELUM account <OpenIcon size={14} strokeWidth={1.75} />
           </button>
         </section>
       )}

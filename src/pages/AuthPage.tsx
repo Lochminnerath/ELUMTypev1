@@ -1,4 +1,4 @@
-import { BadgeCheck, Eye, EyeOff, TriangleAlert } from 'lucide-react';
+import { HiddenIcon, VerifiedIcon, VisibleIcon, WarningIcon } from '../components/icons/ElumIcons';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { api, errorMessage, isApiError } from '../api';
@@ -162,7 +162,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
                 {handleState.kind === 'checking' && <Loader size={14} brand label="Checking" />}
                 {handleState.kind === 'ok' && (
                   <>
-                    <BadgeCheck size={14} strokeWidth={2} aria-hidden="true" /> {handle}@{api.typeDomain} is yours to take.
+                    <VerifiedIcon size={14} strokeWidth={2} aria-hidden="true" /> {handle}@{api.typeDomain} is yours to take.
                   </>
                 )}
                 {handleState.kind === 'bad' && handleState.message}
@@ -218,7 +218,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
                 aria-pressed={showPassword}
                 onClick={() => setShowPassword((v) => !v)}
               >
-                {showPassword ? <EyeOff size={18} strokeWidth={1.75} /> : <Eye size={18} strokeWidth={1.75} />}
+                {showPassword ? <HiddenIcon size={18} strokeWidth={1.75} /> : <VisibleIcon size={18} strokeWidth={1.75} />}
               </button>
             </div>
             {isSignUp && (
@@ -243,7 +243,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
                 onChange={(e) => setRecovery(e.target.value)}
               />
               <span id="recovery-hint" className="auth__warning" data-empty={!recovery || undefined}>
-                <TriangleAlert size={14} strokeWidth={2} aria-hidden="true" />
+                <WarningIcon size={14} strokeWidth={2} aria-hidden="true" />
                 {recovery
                   ? 'We will send a code to confirm it. It is how you get back in if you forget your password.'
                   : 'Without one, nobody can recover your account if you forget your password, not even us.'}

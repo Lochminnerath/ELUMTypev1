@@ -1,4 +1,5 @@
-import { Maximize2, Paperclip, SendHorizontal, X } from 'lucide-react';
+import { Maximize2, X } from 'lucide-react';
+import { AttachIcon, SendIcon } from '../components/icons/ElumIcons';
 import { ReplyAllIcon } from '../components/icons/ElumIcons';
 import { useRef, useState } from 'react';
 import { errorMessage, isApiError, type Address, type Message, type Thread } from '../api';
@@ -85,7 +86,7 @@ export function ReplyDock({
         <ul className="attachment-list dock__files" aria-label="Attachments">
           {d.attachments.map((a) => (
             <li key={a.id} className="attachment-chip">
-              <Paperclip size={14} strokeWidth={2} aria-hidden="true" />
+              <AttachIcon size={14} strokeWidth={2} aria-hidden="true" />
               <span className="attachment-chip__name">{a.name}</span>
               <span className="attachment-chip__size">{formatBytes(a.bytes)}</span>
               <button type="button" className="address-chip__remove" aria-label={`Remove ${a.name}`} onClick={() => void d.removeAttachment(a)}>
@@ -150,7 +151,7 @@ export function ReplyDock({
           }}
         />
         <button type="button" className="icon-btn icon-btn--round" aria-label="Attach files" data-tip="Attach files" onClick={() => fileRef.current?.click()}>
-          <Paperclip {...ICON} />
+          <AttachIcon {...ICON} />
         </button>
         <button
           type="button"
@@ -166,7 +167,7 @@ export function ReplyDock({
           <Maximize2 {...ICON} />
         </button>
         <button type="submit" className="elum-btn elum-btn--product dock__send" disabled={sending || (!d.draft.text.trim() && !d.attachments.length)}>
-          {sending ? <Loader size={18} label="Sending" /> : <SendHorizontal {...ICON} />}
+          {sending ? <Loader size={18} label="Sending" /> : <SendIcon {...ICON} />}
           <span className="dock__send-label">Send</span>
         </button>
       </form>

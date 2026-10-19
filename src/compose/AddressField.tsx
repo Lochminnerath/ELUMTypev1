@@ -1,4 +1,5 @@
-import { AtSign, BadgeCheck, X } from 'lucide-react';
+import { AtSign, X } from 'lucide-react';
+import { VerifiedIcon } from '../components/icons/ElumIcons';
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { api, type Address, type Contact } from '../api';
 import { displayName, parseAddresses } from '../api/validation';
@@ -108,7 +109,7 @@ export function AddressField({ label, value, onChange, autoFocus, typeDomain }: 
           <span key={r.address} className="address-chip" data-elum={r.isElum || undefined} title={r.address}>
             {r.isElum && r.color ? <Avatar user={{ name: displayName(r), color: r.color }} size={20} /> : <AtSign size={14} strokeWidth={2} aria-hidden="true" />}
             <span className="address-chip__name">{r.name || r.address}</span>
-            {r.isElum && <BadgeCheck className="address-chip__badge" size={14} strokeWidth={2} aria-label="ELUM account" />}
+            {r.isElum && <VerifiedIcon className="address-chip__badge" size={14} strokeWidth={2} aria-label="ELUM account" />}
             <button type="button" className="address-chip__remove" aria-label={`Remove ${r.name || r.address}`} onClick={() => onChange(value.filter((v) => v !== r))}>
               <X size={12} strokeWidth={2.25} />
             </button>
@@ -160,7 +161,7 @@ export function AddressField({ label, value, onChange, autoFocus, typeDomain }: 
               <span className="address-suggest__text">
                 <span className="address-suggest__name">
                   {c.name || c.address}
-                  {c.isElum && <BadgeCheck size={14} strokeWidth={2} className="address-chip__badge" aria-label="ELUM account" />}
+                  {c.isElum && <VerifiedIcon size={14} strokeWidth={2} className="address-chip__badge" aria-label="ELUM account" />}
                 </span>
                 <span className="address-suggest__address">{c.address}</span>
               </span>

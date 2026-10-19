@@ -1,4 +1,5 @@
-import { CircleCheck, TriangleAlert, X } from 'lucide-react';
+import { CircleCheck, X } from 'lucide-react';
+import { WarningIcon } from './icons/ElumIcons';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import './Toast.css';
 
@@ -52,7 +53,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((t) => (
           <div key={t.id} className="toast" data-tone={t.tone}>
             {t.tone === 'error' ? (
-              <TriangleAlert size={18} strokeWidth={1.75} />
+              <WarningIcon size={18} strokeWidth={1.75} />
             ) : t.tone === 'success' ? (
               <CircleCheck size={18} strokeWidth={1.75} />
             ) : null}

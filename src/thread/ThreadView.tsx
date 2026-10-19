@@ -1,4 +1,5 @@
-import { ArrowLeft, Bell, BellOff, ChevronDown, ChevronUp, Ellipsis, ImageOff, Paperclip, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, Bell, BellOff, ChevronDown, ChevronUp, Ellipsis, ImageOff, ShieldCheck } from 'lucide-react';
+import { AttachIcon, WarningIcon } from '../components/icons/ElumIcons';
 import { ArchiveIcon, DeleteIcon, DownloadIcon, ForwardIcon, ReplyAllIcon, ReplyIcon, RestoreIcon, SpamIcon, UnreadIcon } from '../components/icons/ElumIcons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -242,7 +243,7 @@ function StatusLine({ message }: { message: Message }) {
   if (message.failed.length) {
     return (
       <span className="msg-status msg-status--failed">
-        <TriangleAlert size={14} strokeWidth={2} aria-hidden="true" />
+        <WarningIcon size={14} strokeWidth={2} aria-hidden="true" />
         Not delivered to {message.failed.join(', ')}
       </span>
     );
@@ -448,7 +449,7 @@ function Attachments({ list }: { list: Attachment[] }) {
               })
             }
           >
-            <Paperclip size={14} strokeWidth={2} aria-hidden="true" />
+            <AttachIcon size={14} strokeWidth={2} aria-hidden="true" />
             <span className="attachment-chip__name">{a.name}</span>
             <span className="attachment-chip__size">{formatBytes(a.bytes)}</span>
             <DownloadIcon size={14} strokeWidth={2} aria-label="Download" />

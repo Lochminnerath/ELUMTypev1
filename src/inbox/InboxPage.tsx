@@ -1,4 +1,5 @@
-import { BadgeCheck, BellOff, Paperclip, SquarePen } from 'lucide-react';
+import { BellOff } from 'lucide-react';
+import { AttachIcon, ComposeIcon, VerifiedIcon } from '../components/icons/ElumIcons';
 import { ArchiveIcon } from '../components/icons/ElumIcons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
@@ -14,6 +15,7 @@ import { useType } from '../state/TypeProvider';
 import { openElsewhere } from '../lib/elum';
 import { ThreadView } from '../thread/ThreadView';
 import './inbox.css';
+import { useFavicon } from '../lib/favicon';
 
 const VIEWS: { view: InboxView; label: string; title: string }[] = [
   { view: 'inbox', label: 'All', title: 'Inbox' },
@@ -48,6 +50,7 @@ export function InboxPage() {
   const { tick, openCompose, refreshCounts } = useType();
 
   const threadId = params.threadId ?? null;
+  useFavicon(threadId ? '/favicons/message.svg' : null);
   const view: InboxView = useMemo(() => {
     if (params.view && VIEWS.some((v) => v.view === params.view)) return params.view as InboxView;
     if (threadId) {
@@ -105,7 +108,7 @@ export function InboxPage() {
             <div className="inbox__title-row">
               <h1 className="inbox__title">{query ? `Results for “${query}”` : title}</h1>
               <button type="button" className="elum-btn elum-btn--product inbox__compose" onClick={() => openCompose()}>
-                <SquarePen size={18} strokeWidth={1.75} />
+                <ComposeIcon size={18} strokeWidth={1.75} />
                 <span>Compose</span>
               </button>
             </div>
@@ -206,7 +209,7 @@ function ThreadRow({ thread, active, to }: { thread: ThreadSummary; active: bool
       <span className="thread-row__text">
         <span className="thread-row__top">
           <span className="thread-row__names">{names}</span>
-          {elum && <BadgeCheck className="thread-row__elum" size={14} strokeWidth={2} aria-label="ELUM conversation" />}
+          {elum && <VerifiedIcon className="thread-row__elum" size={14} strokeWidth={2} aria-label="ELUM conversation" />}
           {thread.messageCount > 1 && <span className="thread-row__count">{thread.messageCount}</span>}
           <time className="thread-row__time" dateTime={thread.lastMessageAt} title={formatFull(thread.lastMessageAt)}>
             {formatWhen(thread.lastMessageAt)}
@@ -219,7 +222,7 @@ function ThreadRow({ thread, active, to }: { thread: ThreadSummary; active: bool
       </span>
       <span className="thread-row__marks">
         {thread.unread && <span className="thread-row__dot" aria-hidden="true" />}
-        {thread.hasAttachments && <Paperclip size={14} strokeWidth={2} aria-label="Has attachments" />}
+        {thread.hasAttachments && <AttachIcon size={14} strokeWidth={2} aria-label="Has attachments" />}
         {thread.muted && <BellOff size={14} strokeWidth={2} aria-label="Muted" />}
       </span>
     </Link>

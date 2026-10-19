@@ -1,4 +1,5 @@
-import { BadgeCheck, Search, SquarePen } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { ComposeIcon, VerifiedIcon } from '../components/icons/ElumIcons';
 import { useEffect, useState } from 'react';
 import { api, errorMessage, type Contact } from '../api';
 import { displayName } from '../api/validation';
@@ -57,7 +58,7 @@ export function ContactsPage() {
               <span className="contact-row__text">
                 <span className="contact-row__name">
                   {c.name || c.address}
-                  {c.isElum && <BadgeCheck size={14} strokeWidth={2} className="address-chip__badge" aria-label="ELUM account" />}
+                  {c.isElum && <VerifiedIcon size={14} strokeWidth={2} className="address-chip__badge" aria-label="ELUM account" />}
                 </span>
                 <span className="contact-row__address">
                   {c.address}
@@ -69,7 +70,7 @@ export function ContactsPage() {
                 className="elum-btn elum-btn--secondary elum-btn--sm"
                 onClick={() => openCompose({ draft: { to: [{ address: c.address, name: c.name }] } })}
               >
-                <SquarePen size={16} strokeWidth={1.75} />
+                <ComposeIcon size={16} strokeWidth={1.75} />
                 Write
               </button>
             </li>
