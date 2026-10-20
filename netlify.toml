@@ -12,3 +12,10 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Only ELUM Browse and ELUM's own sites may show this app inside a frame (Browse opens ELUM apps
+# in its tabs); every other site is refused, which keeps clickjacking out.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "frame-ancestors 'self' https://elumbrowse.netlify.app https://elum.services https://*.elum.services"
