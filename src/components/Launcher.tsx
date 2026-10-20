@@ -54,7 +54,7 @@ export function Launcher({ apps, current, onOpen }: LauncherProps) {
           <div className="launcher__head">
             <img className="theme-light-only" src="/brand/logos/elum-lockup-horizontal.svg" height={18} alt="ELUM" />
             <img className="theme-dark-only" src="/brand/logos/elum-lockup-horizontal-reversed.svg" height={18} alt="ELUM" />
-            <span className="launcher__tagline">Built by people. Runs without AI.</span>
+            <span className="launcher__tagline">Made by you. Runs without AI.</span>
           </div>
           <ul className="launcher__grid">
             {apps.map((app, i) => {
