@@ -8,8 +8,12 @@ import { api } from '../api';
 const env = import.meta.env;
 const clean = (v: string | undefined) => (v?.trim() ? v.trim().replace(/\/+$/, '') : null);
 
-/** ELUM Account. Set VITE_ELUM_ACCOUNT_URL to sign in through it; unset, Type keeps its own sign-in. */
-export const ACCOUNT_URL = clean(env.VITE_ELUM_ACCOUNT_URL);
+/**
+ * ELUM Account, where every ELUM app signs in, so one sign-in covers them all. Set
+ * VITE_ELUM_ACCOUNT_URL to point at another ELUM Account, or to off for Type's own sign-in only.
+ */
+const accountSetting = clean(env.VITE_ELUM_ACCOUNT_URL);
+export const ACCOUNT_URL = accountSetting === 'off' ? null : (accountSetting ?? 'https://elumaccounts.netlify.app');
 export const WRITE_URL = clean(env.VITE_ELUM_WRITE_URL) ?? 'https://elumwrite.netlify.app';
 export const TYPE_URL = clean(env.VITE_ELUM_TYPE_URL) ?? 'https://elumtype.netlify.app';
 /** Where ELUM Account lives, for the launcher, even when sign-in does not go through it. */
@@ -37,6 +41,48 @@ export function signInThroughAccount(next: string) {
   const query = new URLSearchParams({ to: `${location.origin}/auth/handoff`, next });
   window.location.assign(`${ACCOUNT_URL}/continue?${query.toString()}`);
   return true;
+}
+
+const QUIET = 'elum.handoff.quiet';
+/** After ELUM Account says "not signed in", apps wait this long before asking it again. */
+const QUIET_MS = 30 * 60_000;
+
+/**
+ * Asks ELUM Account, without showing it, whether this person is signed in there. If they are,
+ * they come straight back signed in here too, on the same page; if not, they come back as they
+ * were. Once per tab, never inside a frame (Browse signs its tabs in itself), and not again for
+ * half an hour after ELUM Account said no.
+ */
+export function quietSignIn(next: string): boolean {
+  if (!accountsSignIn || window.top !== window.self) return false;
+  try {
+    if (sessionStorage.getItem(QUIET)) return false;
+    if (Date.now() - Number(localStorage.getItem(QUIET) ?? 0) < QUIET_MS) return false;
+    sessionStorage.setItem(QUIET, '1');
+  } catch {
+    return false;
+  }
+  const query = new URLSearchParams({ to: `${location.origin}/auth/handoff`, next, quiet: '1' });
+  window.location.replace(`${ACCOUNT_URL}/continue?${query.toString()}`);
+  return true;
+}
+
+/** ELUM Account said this person is not signed in (or they just signed out): stop asking for a while. */
+export function rememberSignedOut() {
+  try {
+    localStorage.setItem(QUIET, String(Date.now()));
+  } catch {
+    // Without storage, the once-per-tab rule still holds.
+  }
+}
+
+/** Signed in again: the next tab may ask ELUM Account again. */
+export function forgetSignedOut() {
+  try {
+    localStorage.removeItem(QUIET);
+  } catch {
+    // Nothing to forget.
+  }
 }
 
 /**

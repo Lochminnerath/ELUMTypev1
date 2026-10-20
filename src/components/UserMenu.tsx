@@ -10,7 +10,7 @@ import { openWhatsNew } from '../whatsnew/WhatsNew';
 import { Avatar } from './Avatar';
 import { Dialog } from './Dialog';
 import { Menu } from './Menu';
-import { ACCOUNT_URL, accountsSignIn, openAccount } from '../lib/elum';
+import { accountsSignIn, ACCOUNT_URL, openAccount, rememberSignedOut } from '../lib/elum';
 
 const ICON = { size: 16, strokeWidth: 1.75 };
 
@@ -95,6 +95,7 @@ export function UserMenu() {
             onSelect: async () => {
               await signOut();
               // Signed in through ELUM Account: sign out there too, then come back.
+              rememberSignedOut();
               if (accountsSignIn) window.location.assign(`${ACCOUNT_URL}/signout?to=${encodeURIComponent(`${location.origin}/`)}`);
               else navigate('/signin', { replace: true });
             },
