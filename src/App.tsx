@@ -15,7 +15,6 @@ import { TypeProvider } from './state/TypeProvider';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { WhatsNew } from './whatsnew/WhatsNew';
 import { SecurityLayer } from './security/SecurityLayer';
-import { QuietSignIn } from './components/QuietSignIn';
 
 function SignedIn({ children }: { children: React.ReactNode }) {
   return (
@@ -33,7 +32,6 @@ export function App() {
       <ToastProvider>
         <AuthProvider>
           <BrowserRouter>
-            <QuietSignIn />
             <ErrorBoundary>
               <Routes>
                 <Route path="/signin" element={<RedirectIfSignedIn><AuthPage mode="signin" /></RedirectIfSignedIn>} />

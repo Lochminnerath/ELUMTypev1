@@ -22,10 +22,20 @@ export const MAKE_URL = clean(env.VITE_ELUM_MAKE_URL) ?? 'https://elummake.netli
 export const BROWSE_URL = clean(env.VITE_ELUM_BROWSE_URL) ?? 'https://elumbrowse.netlify.app';
 export const STORE_URL = clean(env.VITE_ELUM_STORE_URL) ?? 'https://elumstore.netlify.app';
 
-/** Signing in goes through ELUM Account when it is configured and Supabase is connected. */
-export const accountsSignIn = !!ACCOUNT_URL && api.mode === 'remote';
-
 const ELUM_ORIGINS = [ACCOUNT_URL, WRITE_URL, TYPE_URL, MAKE_URL, BROWSE_URL, STORE_URL].filter(Boolean).map((u) => new URL(u!).origin);
+
+/**
+ * Where ELUM Account will hand a sign-in over: each app's own site, elum.services, and this
+ * computer while developing. Anywhere else, such as a Netlify deploy preview, the app signs in on
+ * its own pages, because ELUM Account refuses to send sign-ins to addresses it does not know.
+ */
+export function accountCanSignInAt(origin: string): boolean {
+  const { hostname } = new URL(origin);
+  return ELUM_ORIGINS.includes(origin) || hostname === 'elum.services' || hostname.endsWith('.elum.services') || hostname === 'localhost' || hostname === '127.0.0.1';
+}
+
+/** Signing in goes through ELUM Account when it is set up, Supabase is connected, and Account can sign people in here. */
+export const accountsSignIn = !!ACCOUNT_URL && api.mode === 'remote' && accountCanSignInAt(window.location.origin);
 const TRIED = 'elum.handoff.tried';
 
 /** Sends a signed-out visitor to ELUM Account, which sends them back signed in to `next`. */
@@ -41,48 +51,6 @@ export function signInThroughAccount(next: string) {
   const query = new URLSearchParams({ to: `${location.origin}/auth/handoff`, next });
   window.location.assign(`${ACCOUNT_URL}/continue?${query.toString()}`);
   return true;
-}
-
-const QUIET = 'elum.handoff.quiet';
-/** After ELUM Account says "not signed in", apps wait this long before asking it again. */
-const QUIET_MS = 30 * 60_000;
-
-/**
- * Asks ELUM Account, without showing it, whether this person is signed in there. If they are,
- * they come straight back signed in here too, on the same page; if not, they come back as they
- * were. Once per tab, never inside a frame (Browse signs its tabs in itself), and not again for
- * half an hour after ELUM Account said no.
- */
-export function quietSignIn(next: string): boolean {
-  if (!accountsSignIn || window.top !== window.self) return false;
-  try {
-    if (sessionStorage.getItem(QUIET)) return false;
-    if (Date.now() - Number(localStorage.getItem(QUIET) ?? 0) < QUIET_MS) return false;
-    sessionStorage.setItem(QUIET, '1');
-  } catch {
-    return false;
-  }
-  const query = new URLSearchParams({ to: `${location.origin}/auth/handoff`, next, quiet: '1' });
-  window.location.replace(`${ACCOUNT_URL}/continue?${query.toString()}`);
-  return true;
-}
-
-/** ELUM Account said this person is not signed in (or they just signed out): stop asking for a while. */
-export function rememberSignedOut() {
-  try {
-    localStorage.setItem(QUIET, String(Date.now()));
-  } catch {
-    // Without storage, the once-per-tab rule still holds.
-  }
-}
-
-/** Signed in again: the next tab may ask ELUM Account again. */
-export function forgetSignedOut() {
-  try {
-    localStorage.removeItem(QUIET);
-  } catch {
-    // Nothing to forget.
-  }
 }
 
 /**

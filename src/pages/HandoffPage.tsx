@@ -3,7 +3,6 @@ import { Link } from 'react-router';
 import { api, errorMessage } from '../api';
 import { TypeMark } from '../components/Brand';
 import { FullPageLoader } from '../components/Loader';
-import { forgetSignedOut, rememberSignedOut } from '../lib/elum';
 
 /**
  * /auth/handoff#token_hash=…&next=…: ELUM Account sent someone here signed in. The token works
@@ -16,22 +15,12 @@ export function HandoffPage() {
     const tokenHash = fragment.get('token_hash');
     const next = fragment.get('next') ?? '/';
     history.replaceState(null, '', window.location.pathname);
-    const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/';
-    // A quiet check (lib/elum.ts quietSignIn): ELUM Account says they are not signed in there.
-    if (!tokenHash && fragment.get('quiet') === 'none') {
-      rememberSignedOut();
-      window.location.replace(safeNext);
-      return;
-    }
     if (!tokenHash) {
       setError('This sign-in link is not complete.');
       return;
     }
     api.completeHandoff(tokenHash).then(
-      () => {
-        forgetSignedOut();
-        window.location.replace(safeNext);
-      },
+      () => window.location.replace(next.startsWith('/') && !next.startsWith('//') ? next : '/'),
       (e) => setError(errorMessage(e)),
     );
   }, []);
