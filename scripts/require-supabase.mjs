@@ -8,8 +8,8 @@
 const env = process.env;
 if (env.NETLIFY !== 'true' || env.VITE_ELUM_PREVIEW === 'true') process.exit(0);
 
-const url = (env.VITE_SUPABASE_URL ?? '').trim();
-const key = (env.VITE_SUPABASE_ANON_KEY ?? '').trim();
+const url = (env.VITE_SUPABASE_URL ?? '').trim() || 'https://afdnnvngrpdodsfwpaqo.supabase.co';
+const key = (env.VITE_SUPABASE_ANON_KEY ?? '').trim() || 'sb_publishable_0o6tXC51UwLFHi8j8d9zcQ_xeB1eKyz';
 const problems = [];
 if (!url) problems.push('VITE_SUPABASE_URL is not set.');
 else if (!/^https:\/\/\S+$/.test(url)) {
