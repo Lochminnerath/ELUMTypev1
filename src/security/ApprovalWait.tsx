@@ -37,6 +37,8 @@ export function ApprovalWait({ sb }: { sb: SupabaseClient }) {
       }
       timer = window.setTimeout(check, 3000);
     };
+    // Ask ELUM to send "Is this you?" to the person's ELUM app. Sent once per sign-in.
+    void sb.functions.invoke('elum-push', { body: {} }).catch(() => undefined);
     void check();
     return () => {
       live = false;
