@@ -63,7 +63,11 @@ export function AddressField({ label, value, onChange, autoFocus, typeDomain }: 
 
   const commit = (raw = text) => {
     if (!raw.trim()) return true;
-    const { addresses, rest } = parseAddresses(raw);
+    const parsed = parseAddresses(raw);
+    // A bare ELUM name ("theo") means that person's Type address.
+    const handles = parsed.rest.filter((r) => /^[a-z0-9._-]+$/i.test(r));
+    const addresses = [...parsed.addresses, ...handles.map((h) => ({ address: `${h.toLowerCase()}@${typeDomain}`, name: null }))];
+    const rest = parsed.rest.filter((r) => !handles.includes(r));
     add(addresses.map((a) => ({ ...a, isElum: a.address.endsWith(`@${typeDomain}`) || undefined })));
     setText(rest.join(', '));
     setProblem(rest.length ? `${rest.join(', ')} ${rest.length === 1 ? 'is not an email address' : 'are not email addresses'}.` : null);
