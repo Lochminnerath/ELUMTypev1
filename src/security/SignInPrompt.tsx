@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { Dialog } from '../components/Dialog';
 import { useToast } from '../components/Toast';
-import { answerSignIn, signInRequests, type SignInRequest } from './approvals';
+import { answerSignIn, pickRequest, signInRequests, type SignInRequest } from './approvals';
 import './Approvals.css';
 
 const POLL_MS = 15_000;
@@ -10,7 +10,8 @@ const POLL_MS = 15_000;
 /**
  * On a device that is signed in: asks "Is this you signing in?" when a new sign-in waits for
  * approval, with the number the new device shows among two others. Picking the wrong number, or
- * "No, it's not me", ends that sign-in.
+ * "No, it's not me", ends that sign-in. A sign-in from the same network is marked nearby; it
+ * still needs the right number.
  */
 export function SignInPrompt({ sb, securityUrl }: { sb: SupabaseClient; securityUrl: string }) {
   const toast = useToast();
@@ -21,7 +22,7 @@ export function SignInPrompt({ sb, securityUrl }: { sb: SupabaseClient; security
     if (document.visibilityState !== 'visible') return true;
     const list = await signInRequests(sb);
     if (list === null) return false; // This database has no approvals: stop asking.
-    setRequest((current) => (current && list.some((r) => r.id === current.id) ? current : (list[0] ?? null)));
+    setRequest((current) => pickRequest(list, current?.id));
     return true;
   }, [sb]);
 
@@ -85,6 +86,12 @@ export function SignInPrompt({ sb, securityUrl }: { sb: SupabaseClient; security
         </button>
       }
     >
+      {request.nearby && (
+        <p className="approval-prompt__nearby">
+          <span className="approval-prompt__nearby-dot" aria-hidden="true" />
+          Nearby · on your network
+        </p>
+      )}
       <div className="approval-prompt__numbers" role="group" aria-label="The number on the new device">
         {request.numbers.map((n) => (
           <button key={n} type="button" className="approval-prompt__number" disabled={busy} onClick={() => void answer(n)}>

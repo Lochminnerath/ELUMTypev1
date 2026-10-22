@@ -37,6 +37,13 @@ export interface SignInRequest {
   at: string;
   expiresAt: string;
   numbers: number[];
+  /** From the same network as this device (the same public address), so probably close by. */
+  nearby?: boolean;
+}
+
+/** Which waiting sign-in to ask about: the one already open while it waits, else nearby ones first. */
+export function pickRequest(list: SignInRequest[], currentId: string | null | undefined): SignInRequest | null {
+  return list.find((r) => r.id === currentId) ?? list.find((r) => r.nearby) ?? list[0] ?? null;
 }
 
 /** For the waiting device: approved yet, and which number to show. */

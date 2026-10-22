@@ -112,6 +112,9 @@ export function ApprovalWait({ sb }: { sb: SupabaseClient }) {
           this you signing in?”, choose <strong>{state?.code ?? "…"}</strong>.
         </p>
         <p className="approval__hint">
+          Your phone or computer on this network will ask you to approve.
+        </p>
+        <p className="approval__hint">
           No other device? Use “Forgot password” on the sign-in page: the email
           link lets you in.
         </p>

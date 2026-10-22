@@ -174,3 +174,34 @@
     animation: none;
   }
 }
+
+.approval-prompt__nearby {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 var(--space-3, 12px);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--elum-mist, #eef2ff);
+  color: var(--action, #3b5bd6);
+  font-size: 13px;
+  font-weight: 600;
+}
+.approval-prompt__nearby-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 0 currentColor;
+  animation: approval-nearby 1.8s ease-out infinite;
+}
+@keyframes approval-nearby {
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .approval-prompt__nearby-dot {
+    animation: none;
+  }
+}
