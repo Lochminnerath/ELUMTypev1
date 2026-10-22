@@ -65,7 +65,7 @@ export function Shell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="shell">
+    <div className="shell" data-thread-open={location.pathname.startsWith('/t/') || undefined}>
       <a className="skip-link" href="#main">
         Skip to messages
       </a>

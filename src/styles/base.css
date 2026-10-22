@@ -384,3 +384,14 @@ img {
     animation-duration: 0ms !important;
   }
 }
+
+/* iPhone Safari zooms into any field whose text is under 16px, and stays zoomed. Fields are
+   16px on phones and touch screens so tapping one never zooms the page. */
+@media (max-width: 760px), (pointer: coarse) {
+  input,
+  select,
+  textarea,
+  [contenteditable='true'] {
+    font-size: 16px !important;
+  }
+}

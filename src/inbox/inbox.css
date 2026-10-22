@@ -50,6 +50,13 @@
 .chips::-webkit-scrollbar {
   display: none;
 }
+/* With room to spare the chips wrap instead of hiding the last ones off the edge. */
+@media (min-width: 561px) {
+  .chips {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
 .chip {
   flex: none;
   display: inline-flex;
@@ -275,11 +282,54 @@
   }
 }
 @media (max-width: 560px) {
-  .inbox__compose span {
+  .inbox__head {
+    padding: var(--space-3) var(--space-4) var(--space-2);
+  }
+  .inbox__title-row {
+    margin-bottom: var(--space-2);
+  }
+  .inbox__title {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  /* Compose floats above the tab bar, where a thumb can reach it. */
+  .inbox__compose {
+    position: fixed;
+    z-index: 20;
+    right: 16px;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    height: 52px;
+    padding: 0 20px;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 8px 24px rgba(20, 26, 46, 0.18);
+  }
+  .inbox[data-thread-open] .inbox__compose {
     display: none;
   }
-  .inbox__compose {
-    width: 44px;
-    padding: 0;
+  /* The tab bar already has Inbox, Unread and Archived. */
+  .chip[href$='/view/unread'],
+  .chip[href*='/view/unread?'],
+  .chip[href$='/view/archive'],
+  .chip[href*='/view/archive?'] {
+    display: none;
+  }
+  .thread-list {
+    padding: 4px 4px 96px;
+  }
+  .thread-row,
+  .card-row {
+    padding: 12px;
+  }
+  .thread-row__names {
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .thread-row__line,
+  .thread-row__snippet {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .card-row__actions {
+    flex-wrap: wrap;
   }
 }
