@@ -197,3 +197,22 @@
     padding: var(--space-4);
   }
 }
+
+/* A setting with a row of choices: label on the left, choices on the right; stacked on phones. */
+.settings-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+  flex-wrap: wrap;
+}
+.settings-choice__label {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+}
+.settings-choice .segmented {
+  flex: none;
+  max-width: 100%;
+  overflow-x: auto;
+}

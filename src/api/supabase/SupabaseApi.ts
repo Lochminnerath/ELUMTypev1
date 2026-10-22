@@ -219,6 +219,17 @@ export class SupabaseApi implements TypeApi {
     await this.sb.auth.signOut();
   }
 
+  async accountData(): Promise<Record<string, unknown>> {
+    const { data, error } = await this.sb.auth.getUser();
+    if (error) throw toApiError(error);
+    return (data.user?.user_metadata as Record<string, unknown> | undefined) ?? {};
+  }
+
+  async updateAccountData(patch: Record<string, unknown>): Promise<void> {
+    const { error } = await this.sb.auth.updateUser({ data: patch });
+    if (error) throw toApiError(error);
+  }
+
   async updateName(name: string): Promise<User> {
     const me = await this.me();
     const { data, error } = await this.sb

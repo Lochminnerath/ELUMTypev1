@@ -39,3 +39,8 @@ export function usePersistedState<T>(key: string, initial: T, isValid: (value: u
   );
   return [value, set];
 }
+
+/** True when someone asked their device for less motion. */
+export function prefersReducedMotion(): boolean {
+  return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}

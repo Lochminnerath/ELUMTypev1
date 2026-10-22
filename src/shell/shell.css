@@ -164,6 +164,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 /* Phones: the wordmark stays, search gets a row of its own, and the rail becomes a tab bar with
    a mist pill behind the active icon, like the other ELUM apps. */

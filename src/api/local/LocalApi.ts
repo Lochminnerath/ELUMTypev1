@@ -40,6 +40,7 @@ import { seedPeople, seedWelcome, OUTSIDE_FRIEND } from './seed';
 
 const KEY = 'elum.type.preview';
 const SESSION_KEY = 'elum.type.preview.session';
+const ACCOUNT_DATA_KEY = 'elum.type.preview.account';
 const MAX_LOCAL_FILE = 2 * 1024 * 1024;
 const COLORS = ['#f59a52', '#3fc4a0', '#9b84ee', '#ec7fa9', '#e9b949', '#7093f8'];
 
@@ -297,6 +298,27 @@ export class LocalApi implements TypeApi {
 
   async signOut(): Promise<void> {
     this.storage.removeItem(SESSION_KEY);
+  }
+
+  async accountData(): Promise<Record<string, unknown>> {
+    const id = this.storage.getItem(SESSION_KEY);
+    if (!id) return {};
+    try {
+      return JSON.parse(this.storage.getItem(`${ACCOUNT_DATA_KEY}.${id}`) ?? '{}') as Record<string, unknown>;
+    } catch {
+      return {};
+    }
+  }
+
+  async updateAccountData(patch: Record<string, unknown>): Promise<void> {
+    const id = this.storage.getItem(SESSION_KEY);
+    if (!id) return;
+    const next = { ...(await this.accountData()), ...patch };
+    try {
+      this.storage.setItem(`${ACCOUNT_DATA_KEY}.${id}`, JSON.stringify(next));
+    } catch {
+      // Nothing important is lost: these are conveniences.
+    }
   }
 
   async updateName(name: string): Promise<User> {

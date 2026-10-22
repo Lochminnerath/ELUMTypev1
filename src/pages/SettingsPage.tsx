@@ -13,7 +13,7 @@ import './pages.css';
 export function SettingsPage() {
   const user = useUser();
   const { updateName } = useAuth();
-  const { start, setPreferences, setMailbox, defaultMailbox, clearPendingRecovery } = useType();
+  const { start, setPreferences, setMailbox, defaultMailbox, clearPendingRecovery, settings, updateSettings } = useType();
   const toast = useToast();
   const prefs = start!.preferences;
   const [name, setName] = useState(user.name);
@@ -118,6 +118,81 @@ export function SettingsPage() {
         )}
       </section>
 
+      <section className="settings-section" aria-labelledby="s-layout">
+        <h2 id="s-layout" className="settings-section__title">Reading</h2>
+        <label className="switch-row">
+          <span>
+            <strong>Reading pane</strong>
+            <span className="muted settings-hint">Open conversations beside the list. Turn it off to give a conversation the whole window. Phones always use one column.</span>
+          </span>
+          <input type="checkbox" className="switch" role="switch" checked={settings.readingPane} onChange={(e) => updateSettings({ readingPane: e.target.checked })} />
+        </label>
+        <Choice
+          label="Density"
+          hint="Compact fits more conversations on the screen."
+          value={settings.density}
+          options={[
+            ['comfortable', 'Comfortable'],
+            ['compact', 'Compact'],
+          ]}
+          onChange={(density) => updateSettings({ density })}
+        />
+        <label className="switch-row">
+          <span>
+            <strong>Conversation view for email</strong>
+            <span className="muted settings-hint">Fold earlier emails under the latest three. Turn it off to see every email in a conversation open.</span>
+          </span>
+          <input type="checkbox" className="switch" role="switch" checked={settings.conversationView} onChange={(e) => updateSettings({ conversationView: e.target.checked })} />
+        </label>
+        <Choice
+          label="Mark as read"
+          hint="With a short wait, glancing at a conversation leaves it unread."
+          value={settings.markRead}
+          options={[
+            ['open', 'When opened'],
+            ['delay', 'After 2 seconds'],
+          ]}
+          onChange={(markRead) => updateSettings({ markRead })}
+        />
+        <Choice
+          label="Swipe left on phones"
+          value={settings.swipe}
+          options={[
+            ['archive', 'Archive'],
+            ['read', 'Read or unread'],
+            ['off', 'Nothing'],
+          ]}
+          onChange={(swipe) => updateSettings({ swipe })}
+        />
+      </section>
+
+      <section className="settings-section" aria-labelledby="s-sending">
+        <h2 id="s-sending" className="settings-section__title">Sending</h2>
+        <Choice
+          label="Replying to an email with several people"
+          hint="What the reply bar starts with. You can switch it for each reply."
+          value={settings.replyDefault}
+          options={[
+            ['all', 'Reply all'],
+            ['reply', 'Reply to sender'],
+          ]}
+          onChange={(replyDefault) => updateSettings({ replyDefault })}
+        />
+        <Choice
+          label="Time to undo sending"
+          hint="Type waits this long before a message goes, with Undo while it waits."
+          value={settings.undoSeconds}
+          options={[
+            [0, 'Off'],
+            [5, '5 s'],
+            [10, '10 s'],
+            [20, '20 s'],
+          ]}
+          onChange={(undoSeconds) => updateSettings({ undoSeconds })}
+        />
+        <p className="muted settings-hint">Your email signature is set for each address, under Your addresses.</p>
+      </section>
+
       <section className="settings-section" aria-labelledby="s-images">
         <h2 id="s-images" className="settings-section__title">Images in email</h2>
         <p className="muted settings-hint">
@@ -184,6 +259,37 @@ export function SettingsPage() {
           </button>
         </section>
       )}
+    </div>
+  );
+}
+
+/** A labelled row of pressed buttons for one setting. */
+function Choice<T extends string | number>({
+  label,
+  hint,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  value: T;
+  options: [T, string][];
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="settings-choice">
+      <span className="settings-choice__label">
+        <strong>{label}</strong>
+        {hint && <span className="muted settings-hint">{hint}</span>}
+      </span>
+      <div className="segmented" role="group" aria-label={label}>
+        {options.map(([v, text]) => (
+          <button key={String(v)} type="button" aria-pressed={value === v} onClick={() => onChange(v)}>
+            {text}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

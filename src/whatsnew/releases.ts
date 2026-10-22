@@ -29,6 +29,34 @@ export const APP_NAME = 'Type';
 
 export const RELEASES: Release[] = [
   {
+    id: '2026-10-22-phones-motion',
+    date: '22 October 2026',
+    title: 'Made for your phone',
+    intro: 'Type now feels at home on a phone, and moves a little more gently everywhere.',
+    features: [
+      {
+        title: 'Built for your thumb',
+        text: 'A tab bar along the bottom, Compose always in reach, and fields that no longer make your phone zoom in.',
+        art: 'devices',
+      },
+      {
+        title: 'Gentle motion',
+        text: 'Conversations slide in and out, new messages settle into the list, and the inbox shows its shape while it loads. If you prefer less motion, Type stays still.',
+        art: 'spark',
+      },
+      {
+        title: 'Type, your way',
+        text: 'New settings for the reading pane, density, when messages count as read, reply or reply all, a moment to undo sending, and swiping on phones.',
+        art: 'layers',
+      },
+      {
+        title: 'What is new, once',
+        text: 'Your account now remembers which updates you have seen, so this tour shows once, not on every browser.',
+        art: 'check',
+      },
+    ],
+  },
+  {
     id: '2026-10-19-symbols',
     date: '19 October 2026',
     title: 'Symbols, redrawn',
@@ -109,11 +137,28 @@ export const RELEASES: Release[] = [
   },
 ];
 
-/** The releases someone has not seen yet, given the last one they saw. New visitors see the latest. */
-export function unseenReleases(releases: Release[], lastSeen: string | null): Release[] {
-  if (!releases.length) return [];
-  const at = lastSeen ? releases.findIndex((r) => r.id === lastSeen) : -1;
-  return at === -1 ? releases.slice(0, 1) : releases.slice(0, at);
+export interface WhatsNewPlan {
+  /** Releases to show now, newest first. */
+  show: Release[];
+  /** A release id to remember straight away, without showing anything. */
+  record: string | null;
+}
+
+/**
+ * What to show, given the last release remembered on the account and in this browser. Only
+ * releases newer than the last one seen are shown. Someone with nothing remembered anywhere (a
+ * new account) sees nothing: we quietly remember the latest so the next update is their first tour.
+ */
+export function planWhatsNew(releases: Release[], seen: { account: string | null; local: string | null }): WhatsNewPlan {
+  const latest = releases[0];
+  if (!latest) return { show: [], record: null };
+  const index = (id: string | null) => (id ? releases.findIndex((r) => r.id === id) : -1);
+  const known = [index(seen.account), index(seen.local)].filter((i) => i !== -1);
+  if (!known.length) return { show: [], record: seen.account === latest.id ? null : latest.id };
+  // The newest of the two wins, so a tour seen on another device is not shown again here.
+  const at = Math.min(...known);
+  if (at === 0) return { show: [], record: seen.account === latest.id ? null : latest.id };
+  return { show: releases.slice(0, at), record: null };
 }
 
 export interface Step {

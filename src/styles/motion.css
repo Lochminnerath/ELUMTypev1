@@ -1,0 +1,180 @@
+/*
+ * Motion for Type. Everything here moves only transform and opacity, and only for people who have
+ * not asked for less motion: with reduced motion Type is still, and nothing waits to appear.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  /* Moving between the inbox, contacts and settings. */
+  .route-in {
+    animation: route-in var(--dur-panel) var(--ease) both;
+  }
+
+  /* Rows settle into the list one after another, gently. New messages arrive the same way. */
+  .list-in {
+    animation: list-in 420ms var(--ease) both;
+    animation-delay: calc(var(--i, 0) * 28ms);
+  }
+
+  /* The loading shimmer. */
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, var(--surface), transparent);
+    opacity: 0.7;
+    transform: translateX(-100%);
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  .skeleton-row:nth-child(2n) .skeleton::after {
+    animation-delay: 120ms;
+  }
+
+  /* Unread: the dot and the badge pop in when they appear or change. */
+  .thread-row__dot {
+    animation: pop var(--dur-panel) var(--ease) both;
+  }
+  .rail__badge {
+    animation: pop var(--dur-panel) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  /* Chips and tabs ease between states. */
+  .chip.chip {
+    transition:
+      background-color var(--dur-hover) var(--ease),
+      border-color var(--dur-hover) var(--ease),
+      color var(--dur-hover) var(--ease),
+      transform var(--dur-hover) var(--ease);
+  }
+  .chip.chip:active,
+  .segmented button:active {
+    transform: scale(0.96);
+  }
+  .segmented button {
+    transition:
+      background-color var(--dur-hover) var(--ease),
+      color var(--dur-hover) var(--ease),
+      box-shadow var(--dur-hover) var(--ease),
+      transform var(--dur-hover) var(--ease);
+  }
+  .thread-row.thread-row,
+  .card-row.card-row {
+    transition:
+      background-color var(--dur-hover) var(--ease),
+      transform var(--dur-panel) var(--ease);
+  }
+  .thread-row.thread-row:active {
+    transform: scale(0.99);
+  }
+
+  /* The composer scales up into place on desktop, and slides up as a sheet on phones. */
+  .compose.compose {
+    animation: compose-scale var(--dur-panel) var(--ease) both;
+    transform-origin: bottom right;
+  }
+  .compose.compose[data-sheet] {
+    animation: compose-sheet 380ms var(--ease) both;
+  }
+  .compose.compose--min {
+    animation: compose-in var(--dur-panel) var(--ease) both;
+  }
+
+  /* One column: the conversation slides in over the list, and back out on Back. */
+  .inbox[data-pane='off'] .thread-pane {
+    animation: thread-in 340ms var(--ease) both;
+  }
+  .inbox[data-pane='off'][data-leaving] .thread-pane {
+    animation: thread-out 200ms cubic-bezier(0.4, 0, 1, 1) both;
+  }
+  /* Beside the list, a newly opened conversation fades up. */
+  .inbox:not([data-pane='off']) .thread-pane {
+    animation: route-in var(--dur-panel) var(--ease) both;
+  }
+
+  /* The Type loader breathes inside a soft halo. */
+  .shell__loading .loader::before,
+  .full-page-loader .loader::before {
+    content: '';
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-mist) 0%, transparent 70%);
+    animation: halo 1.6s ease-in-out infinite;
+  }
+  .shell__loading > p {
+    animation: route-in var(--dur-hero) var(--ease) 300ms both;
+  }
+}
+
+@keyframes route-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes list-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+@keyframes compose-scale {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+}
+@keyframes compose-sheet {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes thread-in {
+  from {
+    opacity: 0.4;
+    transform: translateX(32%);
+  }
+}
+@keyframes thread-out {
+  to {
+    opacity: 0;
+    transform: translateX(40%);
+  }
+}
+@keyframes halo {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.route-in {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.thread-pane {
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.thread-pane > .thread {
+  flex: 1;
+}

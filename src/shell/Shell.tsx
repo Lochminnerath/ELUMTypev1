@@ -30,6 +30,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const searchRef = useRef<HTMLInputElement>(null);
   const query = params.get('q') ?? '';
   const onList = !location.pathname.startsWith('/contacts') && !location.pathname.startsWith('/settings');
+  const section = onList ? 'inbox' : location.pathname.split('/')[1];
 
   // "/" focuses search, like most mail apps.
   useEffect(() => {
@@ -144,7 +145,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 data-tip-placement="right"
               >
                 <Icon size={20} strokeWidth={1.75} />
-                {!!item.badge && <span className="rail__badge">{item.badge > 99 ? '99+' : item.badge}</span>}
+                {!!item.badge && <span className="rail__badge" key={item.badge}>{item.badge > 99 ? '99+' : item.badge}</span>}
                 <span className="rail__text">{item.label}</span>
               </NavLink>
             );
@@ -164,7 +165,17 @@ export function Shell({ children }: { children: ReactNode }) {
       </nav>
 
       <main id="main" className="shell__main">
-        {start ? children : <div className="shell__loading"><Loader size={48} label="Opening your inbox" /></div>}
+        {start ? (
+          // Each section fades in as you move between them; conversations open inside the inbox.
+          <div className="route-in" key={section}>
+            {children}
+          </div>
+        ) : (
+          <div className="shell__loading">
+            <Loader size={48} label="Opening your inbox" />
+            <p className="muted">Opening your inbox</p>
+          </div>
+        )}
       </main>
 
       {start && compose && <Compose key={compose.draft.id ?? 'new'} request={compose} />}

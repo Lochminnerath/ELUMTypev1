@@ -10,6 +10,7 @@ import { Loader } from '../components/Loader';
 import { useToast } from '../components/Toast';
 import { formatBytes } from '../lib/format';
 import { useType } from '../state/TypeProvider';
+import { delayedSend } from '../settings/typeSettings';
 
 const ICON = { size: 18, strokeWidth: 1.75 };
 
@@ -29,11 +30,11 @@ export function ReplyDock({
   onSent: () => void;
   canEmail: boolean;
 }) {
-  const { openCompose } = useType();
+  const { openCompose, settings } = useType();
   const toast = useToast();
   const last = [...thread.messages].reverse().find((m) => !m.auto) ?? thread.messages[thread.messages.length - 1];
   const isEmail = thread.kind === 'email';
-  const [all, setAll] = useState(true);
+  const [all, setAll] = useState(settings.replyDefault === 'all');
   const target = last ? recipients(last, all) : { to: [], cc: [] };
   const [draftId] = useState(() => crypto.randomUUID());
   const d = useDraft({
@@ -63,8 +64,10 @@ export function ReplyDock({
     setError(null);
     try {
       // The recipients follow the latest message when the reply goes out.
-      await d.send({ to: target.to, cc: target.cc });
-      onSent();
+      const wait = settings.undoSeconds;
+      const later = delayedSend(wait, () => d.send({ to: target.to, cc: target.cc }));
+      if (wait > 0) toast(`Sending in ${wait} seconds`, { duration: wait * 1000, action: { label: 'Undo', onClick: () => later.cancel() } });
+      if (await later.done) onSent();
     } catch (e) {
       setError(errorMessage(e));
       toast(errorMessage(e), { tone: 'error' });

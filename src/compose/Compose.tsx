@@ -12,6 +12,7 @@ import { useType, type ComposeRequest } from '../state/TypeProvider';
 import { AddressField, type Recipient } from './AddressField';
 import { RichEditor } from './RichEditor';
 import { useDraft } from './useDraft';
+import { delayedSend } from '../settings/typeSettings';
 import './compose.css';
 
 const ICON = { size: 18, strokeWidth: 1.75 };
@@ -21,7 +22,7 @@ const ICON = { size: 18, strokeWidth: 1.75 };
  * (handoff 8.3). Saves as you type; Send is the mint pill, once per view.
  */
 export function Compose({ request }: { request: ComposeRequest }) {
-  const { start, defaultMailbox, closeCompose } = useType();
+  const { start, defaultMailbox, closeCompose, openCompose, settings } = useType();
   const toast = useToast();
   const navigate = useNavigate();
   const phone = useMediaQuery('(max-width: 560px)');
@@ -82,6 +83,30 @@ export function Compose({ request }: { request: ComposeRequest }) {
     }
     setSending(true);
     setError(null);
+    const wait = settings.undoSeconds;
+    if (wait > 0) {
+      // Keep the draft safe, close, and give a moment to change your mind.
+      if (!(await d.save())) {
+        setSending(false);
+        setError('We could not save the message. Check your connection and try again.');
+        return;
+      }
+      const snapshot = { draft: { ...d.draft }, version: d.version.current, attachments: d.attachments };
+      const later = delayedSend(wait, () => d.send());
+      closeCompose();
+      toast(`Sending in ${wait} seconds`, { duration: wait * 1000, action: { label: 'Undo', onClick: () => later.cancel() } });
+      later.done.then(
+        (went) => {
+          if (!went) openCompose(snapshot);
+          else toast('Sent', { tone: 'success' });
+        },
+        (e) => {
+          toast(errorMessage(e), { tone: 'error' });
+          openCompose(snapshot);
+        },
+      );
+      return;
+    }
     try {
       const result = await d.send();
       closeCompose();

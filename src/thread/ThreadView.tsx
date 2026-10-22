@@ -14,6 +14,7 @@ import { formatBytes, namesOf } from '../lib/format';
 import { cleanRichText, linkify } from '../lib/sanitize';
 import { formatFull, formatWhen } from '../lib/time';
 import { useType } from '../state/TypeProvider';
+import { MARK_READ_DELAY } from '../settings/typeSettings';
 import { EmailFrame } from './EmailFrame';
 import { ReplyDock } from './ReplyDock';
 import './thread.css';
@@ -22,7 +23,7 @@ const ICON = { size: 18, strokeWidth: 1.75 };
 
 /** One conversation: ELUM messages as bubbles, email as cards, and the reply dock (handoff 8.2). */
 export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; onBack: () => void; onChanged: () => void }) {
-  const { tick, lastEvent, refreshCounts, openCompose, defaultMailbox, start } = useType();
+  const { tick, lastEvent, refreshCounts, openCompose, defaultMailbox, start, settings } = useType();
   const toast = useToast();
   const navigate = useNavigate();
   const [thread, setThread] = useState<Thread | null>(null);
@@ -31,6 +32,8 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
   const count = useRef(0);
   // A new dock (and draft) after each reply.
   const [dock, setDock] = useState(0);
+  const readTimer = useRef<number | undefined>(undefined);
+  const markLater = settings.markRead === 'delay';
 
   const load = useCallback(async () => {
     try {
@@ -39,18 +42,26 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
       setError(null);
       const latest = t.messages[t.messages.length - 1];
       if (latest && (!t.me.lastReadAt || latest.createdAt > t.me.lastReadAt) && !latest.mine) {
-        await api.markRead(threadId);
-        refreshCounts();
-        onChanged();
+        const markRead = async () => {
+          await api.markRead(threadId);
+          refreshCounts();
+          onChanged();
+        };
+        // With "after 2 seconds", glancing at a conversation leaves it unread.
+        window.clearTimeout(readTimer.current);
+        if (markLater) readTimer.current = window.setTimeout(() => void markRead(), MARK_READ_DELAY);
+        else await markRead();
       }
     } catch (e) {
       setError(errorMessage(e));
     }
-  }, [threadId, refreshCounts, onChanged]);
+  }, [threadId, refreshCounts, onChanged, markLater]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => () => window.clearTimeout(readTimer.current), []);
 
   // Live: reload when something in this thread changes.
   useEffect(() => {
@@ -210,7 +221,7 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
                 {isEmail ? (
                   <EmailCard
                     message={m}
-                    collapsed={i < thread.messages.length - 3}
+                    collapsed={settings.conversationView && i < thread.messages.length - 3}
                     onReply={() => reply(m, false)}
                     onReplyAll={() => reply(m, true)}
                     onForward={() => forward(m)}

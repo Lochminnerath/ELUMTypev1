@@ -2,13 +2,16 @@ import { ArrowLeft, ArrowRight, X } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useAuth } from '../auth/AuthProvider';
 import { TypeMark } from '../components/Brand';
-import { APP_NAME, RELEASES, tourSteps, unseenReleases, type Step } from './releases';
+import { api } from '../api';
+import { APP_NAME, RELEASES, planWhatsNew, tourSteps, type Step } from './releases';
 import { Scene } from './scenes';
 import './WhatsNew.css';
 
 const SEEN_KEY = 'elum.type.whats-new';
 const OPEN_EVENT = 'elum:whats-new';
 const ACCENT = '#3fc4a0';
+/** The flat key in the account's metadata that holds the last release seen. */
+export const ACCOUNT_KEY = 'whatsnew_type';
 
 function lastSeen(): string | null {
   try {
@@ -18,11 +21,27 @@ function lastSeen(): string | null {
   }
 }
 
-function markSeen() {
+function remember(id: string) {
   try {
-    if (RELEASES[0]) localStorage.setItem(SEEN_KEY, RELEASES[0].id);
+    localStorage.setItem(SEEN_KEY, id);
   } catch {
-    // Without storage the tour shows again next time, which is harmless.
+    // The account still remembers it.
+  }
+  // Remembered on the account, so other browsers and devices do not show it again.
+  void api.updateAccountData?.({ [ACCOUNT_KEY]: id }).catch(() => undefined);
+}
+
+function markSeen() {
+  if (RELEASES[0]) remember(RELEASES[0].id);
+}
+
+async function accountSeen(): Promise<string | null> {
+  try {
+    const data = (await api.accountData?.()) ?? {};
+    const value = data[ACCOUNT_KEY];
+    return typeof value === 'string' ? value : null;
+  } catch {
+    return null;
   }
 }
 
@@ -38,8 +57,16 @@ export function WhatsNew() {
 
   useEffect(() => {
     if (status !== 'signed-in') return;
-    const unseen = unseenReleases(RELEASES, lastSeen());
-    if (unseen.length) setSteps(tourSteps(unseen));
+    let cancelled = false;
+    void accountSeen().then((account) => {
+      if (cancelled) return;
+      const plan = planWhatsNew(RELEASES, { account, local: lastSeen() });
+      if (plan.record) remember(plan.record);
+      if (plan.show.length) setSteps(tourSteps(plan.show));
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [status]);
 
   useEffect(() => {

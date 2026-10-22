@@ -333,3 +333,99 @@
     flex-wrap: wrap;
   }
 }
+
+/* Without the reading pane an open conversation takes the whole width, with a Back button. */
+.inbox[data-pane='off'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+.inbox[data-pane='off'] .inbox__list {
+  border-right: 0;
+}
+.inbox[data-pane='off'] .thread__back {
+  display: inline-flex;
+}
+
+/* Compact density: tighter rows and smaller pictures. */
+[data-density='compact'] .thread-row,
+[data-density='compact'] .card-row {
+  gap: 10px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+[data-density='compact'] .thread-row__marks {
+  padding-top: 20px;
+}
+[data-density='compact'] .thread-row__line {
+  gap: 4px;
+}
+
+/* Loading: rows in the shape of the list, with a soft shimmer passing over them. */
+.skeleton-list {
+  overflow: hidden;
+}
+.skeleton-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+}
+.skeleton-row__lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.skeleton {
+  position: relative;
+  display: block;
+  height: 12px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--hairline) 60%, var(--surface-glass));
+}
+.skeleton--avatar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+.skeleton-row__lines .skeleton:first-child {
+  height: 14px;
+}
+
+/* Swipe on phones: the action waits under the row and fills with colour once far enough. */
+.swipe {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.swipe__action {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-right: 20px;
+  border-radius: 12px;
+  background: var(--surface-glass);
+  color: var(--ink-muted);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color var(--dur-hover) var(--ease), color var(--dur-hover) var(--ease);
+}
+.swipe[data-armed] .swipe__action {
+  background: var(--accent);
+  color: #141a2e;
+}
+.swipe .thread-row {
+  background: var(--surface);
+  touch-action: pan-y;
+  transition: transform var(--dur-panel) var(--ease), background-color var(--dur-hover) var(--ease);
+}
+.swipe .thread-row[aria-current='page'] {
+  background: var(--accent-mist);
+}
+.swipe .thread-row[data-dragging] {
+  transition: none;
+}
