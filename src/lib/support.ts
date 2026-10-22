@@ -1,9 +1,9 @@
 import { ApiError } from '../api/errors';
 
 /** Where someone goes when something went wrong. The support form is served by ELUM Inquire. */
-const SUPPORT_BASE = 'https://browse.elum.services/app/inquire/f/support';
+const SUPPORT_BASE = 'https://elumbrowse.netlify.app/app/inquire/f/support';
 
-export const TROUBLESHOOTING_URL = 'https://browse.elum.services/docs/troubleshooting';
+export const TROUBLESHOOTING_URL = 'https://elumbrowse.netlify.app/docs/troubleshooting';
 export const PASSKEY_TROUBLESHOOTING_URL = `${TROUBLESHOOTING_URL}#passkeys`;
 
 export interface SupportDetails {

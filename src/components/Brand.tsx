@@ -79,8 +79,10 @@ const GLYPHS: Record<Product, React.ReactNode> = {
   ),
   inquire: (
     <>
-      <circle cx="12" cy="9" r="5.5" />
-      <circle cx="12" cy="19.25" r="1.9" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="8.7" r="4.6" />
+      <circle cx="8.62" cy="14.55" r="4.6" />
+      <circle cx="15.38" cy="14.55" r="4.6" />
+      <circle cx="12" cy="12.6" r="1.3" fill="currentColor" stroke="none" />
     </>
   ),
 };
