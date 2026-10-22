@@ -1,7 +1,11 @@
 import { CircleCheck, X } from 'lucide-react';
 import { WarningIcon } from './icons/ElumIcons';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { isSupportable, openSupport } from '../lib/support';
 import './Toast.css';
+
+/** The product id support tickets are filed under. */
+const APP_ID = 'type';
 
 type Tone = 'info' | 'success' | 'error';
 
@@ -12,7 +16,16 @@ interface ToastItem {
   action?: { label: string; onClick: () => void };
 }
 
-type ShowToast = (message: string, options?: { tone?: Tone; action?: ToastItem['action']; duration?: number }) => void;
+interface ToastOptions {
+  tone?: Tone;
+  action?: ToastItem['action'];
+  duration?: number;
+  /** For an error toast: what went wrong and a short code. Adds "Contact support" when it is not the person's to fix. */
+  cause?: unknown;
+  code?: string;
+}
+
+type ShowToast = (message: string, options?: ToastOptions) => void;
 
 const ToastContext = createContext<ShowToast | null>(null);
 
@@ -23,10 +36,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const dismiss = useCallback((id: number) => setToasts((list) => list.filter((t) => t.id !== id)), []);
 
   const show = useCallback<ShowToast>(
-    (message, { tone = 'info', action, duration = 4500 } = {}) => {
+    (message, { tone = 'info', action, duration = 4500, cause, code } = {}) => {
       const id = nextId.current++;
-      setToasts((list) => [...list.slice(-2), { id, message, tone, action }]);
-      window.setTimeout(() => dismiss(id), duration);
+      const help =
+        action ??
+        (tone === 'error' && code && isSupportable(cause)
+          ? { label: 'Contact support', onClick: () => openSupport(APP_ID, { code, message }) }
+          : undefined);
+      setToasts((list) => [...list.slice(-2), { id, message, tone, action: help }]);
+      window.setTimeout(() => dismiss(id), help ? Math.max(duration, 8000) : duration);
     },
     [dismiss],
   );

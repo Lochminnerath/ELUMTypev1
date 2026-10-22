@@ -18,6 +18,7 @@ import { openElsewhere } from '../lib/elum';
 import { ThreadView } from '../thread/ThreadView';
 import './inbox.css';
 import { useFavicon } from '../lib/favicon';
+import { SupportLink } from '../components/SupportLink';
 
 const VIEWS: { view: InboxView; label: string; title: string }[] = [
   { view: 'inbox', label: 'All', title: 'Inbox' },
@@ -126,7 +127,7 @@ export function InboxPage() {
       void load();
       refreshCounts();
     } catch (e) {
-      toast(errorMessage(e), { tone: 'error' });
+      toast(errorMessage(e), { tone: 'error', cause: e, code: 'inbox-failed' });
     }
   };
   const linkFor = (id: string) => ({ pathname: `/t/${id}`, search: location.search });
@@ -163,6 +164,7 @@ export function InboxPage() {
               <button type="button" className="elum-btn elum-btn--secondary elum-btn--sm" onClick={() => void load()}>
                 Try again
               </button>
+              <SupportLink app="type" code="inbox-failed" message={error} />
             </div>
           )}
 
@@ -339,7 +341,7 @@ function ThreadRow({
   );
 }
 
-const SERVICE_NAMES: Record<string, string> = { elum: 'ELUM', write: 'Write', type: 'Type', browse: 'Browse', make: 'Make', store: 'Store' };
+const SERVICE_NAMES: Record<string, string> = { elum: 'ELUM', write: 'Write', type: 'Type', browse: 'Browse', make: 'Make', store: 'Store', inquire: 'Inquire' };
 
 /** A platform event shown in the inbox: "Ola shared “Field notes” with you", with Open in Write (handoff 8.5). */
 function CardRow({ card, onChange }: { card: InboxCard; onChange: () => void }) {

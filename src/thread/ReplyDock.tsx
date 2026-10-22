@@ -70,7 +70,7 @@ export function ReplyDock({
       if (await later.done) onSent();
     } catch (e) {
       setError(errorMessage(e));
-      toast(errorMessage(e), { tone: 'error' });
+      toast(errorMessage(e), { tone: 'error', cause: e, code: 'send-failed' });
     } finally {
       setSending(false);
     }

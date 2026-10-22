@@ -1,36 +1,280 @@
 /*
+ * Motion. Bigger, springier movement for the whole app, built from shared tokens.
+ *
+ * Rules this file keeps:
+ * - Only transform and opacity move on lists, pages and anything that repeats. Blur is used just on
+ *   small, short-lived things (menus, dialogs, toasts) where it is cheap.
+ * - Everything is inside prefers-reduced-motion: no-preference, so with reduced motion the app is still
+ *   and nothing waits to appear.
+ * - Inputs stay 16px (the iPhone zoom fix lives in base.css and is not touched here).
+ */
+:root {
+  /* Easing: a springy overshoot for things that arrive, a long glide for pages, a firm exit. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-glide: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-strong: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-exit: cubic-bezier(0.5, 0, 0.75, 0);
+  /* Durations. */
+  --dur-instant: 90ms;
+  --dur-quick: 180ms;
+  --dur-medium: 340ms;
+  --dur-expand: 560ms;
+  --dur-slow: 780ms;
+  /* The gap between neighbours in a staggered list. */
+  --stagger: 55ms;
+}
+
+/* Headings are set in the display face. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ---- Press feedback: buttons lift a touch on hover and squash on press ---- */
+  .elum-btn.elum-btn,
+  .icon-btn.icon-btn {
+    transition:
+      box-shadow var(--dur-quick) var(--ease-glide),
+      background-color var(--dur-quick) var(--ease-glide),
+      border-color var(--dur-quick) var(--ease-glide),
+      color var(--dur-quick) var(--ease-glide),
+      transform var(--dur-quick) var(--ease-spring);
+  }
+  .elum-btn.elum-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+  .elum-btn.elum-btn:active:not(:disabled) {
+    transform: scale(0.95);
+    transition-duration: var(--dur-instant);
+  }
+  .icon-btn.icon-btn:active:not(:disabled) {
+    transform: scale(0.86);
+    transition-duration: var(--dur-instant);
+  }
+
+  /* ---- Dialogs rise, grow and sharpen into place over a softly fading backdrop ---- */
+  .dialog.dialog[open] {
+    animation: m-dialog-in var(--dur-expand) var(--ease-spring) both;
+  }
+  .dialog.dialog[open]::backdrop {
+    animation: m-fade var(--dur-medium) var(--ease-glide) both;
+  }
+
+  /* ---- Menus and popovers open from the side they hang from ---- */
+  .floating-panel.floating-panel {
+    transform-origin: top center;
+    animation: m-pop-in 320ms var(--ease-spring) both;
+  }
+  .floating-panel.menu .menu__item,
+  .floating-panel .menu__item {
+    animation: m-item-in 400ms var(--ease-glide) both;
+    animation-delay: 50ms;
+  }
+  .floating-panel .menu__item:nth-child(2) { animation-delay: 80ms; }
+  .floating-panel .menu__item:nth-child(3) { animation-delay: 110ms; }
+  .floating-panel .menu__item:nth-child(4) { animation-delay: 140ms; }
+  .floating-panel .menu__item:nth-child(5) { animation-delay: 170ms; }
+  .floating-panel .menu__item:nth-child(6) { animation-delay: 200ms; }
+  .floating-panel .menu__item:nth-child(7) { animation-delay: 230ms; }
+  .floating-panel .menu__item:nth-child(8) { animation-delay: 260ms; }
+
+  /* ---- The ELUM apps window ---- */
+  .floating-panel.launcher.launcher {
+    transform-origin: top right;
+    animation: m-pop-in-large 560ms var(--ease-spring) both;
+  }
+  .launcher__grid.launcher__grid > li {
+    animation: m-tile-in 640ms var(--ease-spring) both;
+    animation-delay: calc(var(--i, 0) * 50ms + 100ms);
+  }
+  a.launcher__tile:hover .launcher__disc,
+  a.launcher__tile:focus-visible .launcher__disc {
+    transform: translateY(-4px) scale(1.1);
+  }
+  .launcher__disc.launcher__disc {
+    transition:
+      transform var(--dur-medium) var(--ease-spring),
+      box-shadow var(--dur-medium) var(--ease-glide);
+  }
+
+  /* ---- Toasts spring up from below ---- */
+  .toast.toast {
+    animation: m-toast-in var(--dur-expand) var(--ease-spring) both;
+  }
+
+  /* ---- What's new: the card flies up, and each step slides and sharpens in ---- */
+  .wn__card.wn__card {
+    animation: m-card-in var(--dur-slow) var(--ease-spring) both;
+  }
+  .wn__copy.wn__copy {
+    animation: m-step-next 640ms var(--ease-glide) both;
+  }
+  .wn__copy.wn__copy[data-dir='back'] {
+    animation-name: m-step-back;
+  }
+  .wn__hero.wn__hero > :first-child {
+    animation: m-fade var(--dur-slow) var(--ease-glide) both;
+  }
+
+  /* ---- Loading: a bright band glides across whatever is still on its way ---- */
+  .skeleton.skeleton {
+    position: relative;
+    overflow: hidden;
+    animation: none;
+  }
+  .skeleton.skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--surface) 78%, transparent) 50%, transparent 80%);
+    transform: translateX(-100%);
+    animation: m-shimmer 1.5s var(--ease-in-out-strong) infinite;
+    pointer-events: none;
+  }
+
+  /* ---- Page by page, and list by list ---- */
+  .thread-row.thread-row:hover,
+  .card-row.card-row:hover {
+    transform: translateX(2px);
+  }
+  /* Messages in a conversation arrive with a little give. */
+  .bubble.bubble,
+  .email-card.email-card {
+    animation: m-bubble-in var(--dur-medium) var(--ease-spring) backwards;
+  }
+}
+
+@keyframes m-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.94);
+  }
+}
+@keyframes m-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes m-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.9);
+    filter: blur(10px);
+  }
+  55% {
+    filter: blur(0);
+  }
+}
+@keyframes m-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.92);
+    filter: blur(5px);
+  }
+  60% {
+    filter: blur(0);
+  }
+}
+@keyframes m-pop-in-large {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.86);
+    filter: blur(8px);
+  }
+  60% {
+    filter: blur(0);
+  }
+}
+@keyframes m-item-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+}
+@keyframes m-tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.6);
+  }
+}
+@keyframes m-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.86);
+  }
+}
+@keyframes m-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(56px) scale(0.88);
+  }
+}
+@keyframes m-step-next {
+  from {
+    opacity: 0;
+    transform: translateX(56px);
+    filter: blur(6px);
+  }
+  50% {
+    filter: blur(0);
+  }
+}
+@keyframes m-step-back {
+  from {
+    opacity: 0;
+    transform: translateX(-56px);
+    filter: blur(6px);
+  }
+  50% {
+    filter: blur(0);
+  }
+}
+@keyframes m-route-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.99);
+  }
+}
+@keyframes m-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+}
+@keyframes m-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+@keyframes m-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* ---- Type-specific motion ---- */
+/*
  * Motion for Type. Everything here moves only transform and opacity, and only for people who have
  * not asked for less motion: with reduced motion Type is still, and nothing waits to appear.
  */
 @media (prefers-reduced-motion: no-preference) {
   /* Moving between the inbox, contacts and settings. */
   .route-in {
-    animation: route-in var(--dur-panel) var(--ease) both;
+    animation: route-in var(--dur-expand, 560ms) var(--ease-glide, var(--ease)) both;
   }
 
   /* Rows settle into the list one after another, gently. New messages arrive the same way. */
   .list-in {
-    animation: list-in 420ms var(--ease) both;
-    animation-delay: calc(var(--i, 0) * 28ms);
-  }
-
-  /* The loading shimmer. */
-  .skeleton::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent, var(--surface), transparent);
-    opacity: 0.7;
-    transform: translateX(-100%);
-    animation: shimmer 1.4s ease-in-out infinite;
-  }
-  .skeleton-row:nth-child(2n) .skeleton::after {
-    animation-delay: 120ms;
+    animation: list-in 560ms var(--ease-glide, var(--ease)) backwards;
+    animation-delay: calc(min(var(--i, 0), 12) * 45ms);
   }
 
   /* Unread: the dot and the badge pop in when they appear or change. */
   .thread-row__dot {
-    animation: pop var(--dur-panel) var(--ease) both;
+    animation: pop var(--dur-medium, 340ms) var(--ease-spring, var(--ease)) both;
   }
   .rail__badge {
     animation: pop var(--dur-panel) cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -67,11 +311,11 @@
 
   /* The composer scales up into place on desktop, and slides up as a sheet on phones. */
   .compose.compose {
-    animation: compose-scale var(--dur-panel) var(--ease) both;
+    animation: compose-scale var(--dur-expand, 560ms) var(--ease-spring, var(--ease)) both;
     transform-origin: bottom right;
   }
   .compose.compose[data-sheet] {
-    animation: compose-sheet 380ms var(--ease) both;
+    animation: compose-sheet 520ms var(--ease-glide, var(--ease)) both;
   }
   .compose.compose--min {
     animation: compose-in var(--dur-panel) var(--ease) both;
@@ -79,7 +323,7 @@
 
   /* One column: the conversation slides in over the list, and back out on Back. */
   .inbox[data-pane='off'] .thread-pane {
-    animation: thread-in 340ms var(--ease) both;
+    animation: thread-in 480ms var(--ease-glide, var(--ease)) both;
   }
   .inbox[data-pane='off'][data-leaving] .thread-pane {
     animation: thread-out 200ms cubic-bezier(0.4, 0, 1, 1) both;
@@ -107,13 +351,13 @@
 @keyframes route-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(22px) scale(0.99);
   }
 }
 @keyframes list-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(18px) scale(0.98);
   }
 }
 @keyframes shimmer {
@@ -130,7 +374,7 @@
 @keyframes compose-scale {
   from {
     opacity: 0;
-    transform: translateY(16px) scale(0.96);
+    transform: translateY(32px) scale(0.9);
   }
 }
 @keyframes compose-sheet {
@@ -140,8 +384,8 @@
 }
 @keyframes thread-in {
   from {
-    opacity: 0.4;
-    transform: translateX(32%);
+    opacity: 0;
+    transform: translateX(40%);
   }
 }
 @keyframes thread-out {

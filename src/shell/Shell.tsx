@@ -12,6 +12,7 @@ import { useType } from '../state/TypeProvider';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { ElumLauncher } from '../components/ElumLauncher';
 import './shell.css';
+import { SupportLinks } from '../components/SupportLink';
 
 interface RailItem {
   to: string;
@@ -61,6 +62,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <button type="button" className="elum-btn elum-btn--primary" onClick={retryStart}>
           Try again
         </button>
+        <SupportLinks app="type" code="inbox-failed" message={startError} />
       </div>
     );
   }

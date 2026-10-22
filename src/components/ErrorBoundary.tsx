@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react';
+import { SupportLinks } from './SupportLink';
 import { TypeMark } from './Brand';
 
 interface State {
@@ -25,6 +26,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
         <button type="button" className="elum-btn elum-btn--primary" onClick={() => window.location.reload()}>
           Reload
         </button>
+        <SupportLinks app="type" code={stale ? 'app-updated' : 'app-error'} message={stale ? 'This page has been updated' : 'Something went wrong'} />
       </div>
     );
   }

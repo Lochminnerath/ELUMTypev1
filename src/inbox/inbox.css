@@ -266,6 +266,7 @@
 .card-row__service[data-service='browse'] { color: var(--browse-deep); }
 .card-row__service[data-service='make'] { color: var(--make-deep); }
 .card-row__service[data-service='store'] { color: var(--store-deep); }
+.card-row__service[data-service='inquire'] { color: var(--inquire-deep); }
 .card-row__service[data-service='elum'] { color: var(--elum-blue-deep); }
 .card-row__dot {
   position: absolute;

@@ -7,7 +7,7 @@ import './Launcher.css';
  * between ELUM apps. The same component lives in every app; each passes its own list.
  */
 export interface LauncherApp {
-  id: 'write' | 'type' | 'make' | 'account' | 'browse' | 'store';
+  id: 'write' | 'type' | 'make' | 'account' | 'browse' | 'store' | 'inquire' | 'home';
   name: string;
   note: string;
   /** Where it opens. Null while it is not open yet ("Soon"). */

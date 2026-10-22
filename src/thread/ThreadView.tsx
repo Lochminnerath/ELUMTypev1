@@ -18,6 +18,7 @@ import { MARK_READ_DELAY } from '../settings/typeSettings';
 import { EmailFrame } from './EmailFrame';
 import { ReplyDock } from './ReplyDock';
 import './thread.css';
+import { SupportLinks } from '../components/SupportLink';
 
 const ICON = { size: 18, strokeWidth: 1.75 };
 
@@ -85,6 +86,7 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
         <button type="button" className="elum-btn elum-btn--secondary" onClick={onBack}>
           Back to the inbox
         </button>
+        <SupportLinks app="type" code="open-failed" message={error} />
       </section>
     );
   }

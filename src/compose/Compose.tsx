@@ -101,7 +101,7 @@ export function Compose({ request }: { request: ComposeRequest }) {
           else toast('Sent', { tone: 'success' });
         },
         (e) => {
-          toast(errorMessage(e), { tone: 'error' });
+          toast(errorMessage(e), { tone: 'error', cause: e, code: 'send-failed' });
           openCompose(snapshot);
         },
       );

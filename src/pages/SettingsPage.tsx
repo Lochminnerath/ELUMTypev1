@@ -34,7 +34,7 @@ export function SettingsPage() {
       toast(message, { tone: 'success' });
     } catch (e) {
       if (isApiError(e, 'conflict')) toast('Your settings changed on another device. Reload to see them.', { tone: 'error' });
-      else toast(errorMessage(e), { tone: 'error' });
+      else toast(errorMessage(e), { tone: 'error', cause: e, code: 'settings-failed' });
     } finally {
       setBusy(false);
     }
@@ -46,7 +46,7 @@ export function SettingsPage() {
       await updateName(name);
       toast('Name saved', { tone: 'success' });
     } catch (err) {
-      toast(errorMessage(err), { tone: 'error' });
+      toast(errorMessage(err), { tone: 'error', cause: err, code: 'settings-failed' });
     }
   };
 
@@ -309,7 +309,7 @@ function MailboxSettings({ mailbox, isDefault, onSaved }: { mailbox: Mailbox; is
             onSaved(m);
             toast('Saved', { tone: 'success' });
           },
-          (err) => toast(errorMessage(err), { tone: 'error' }),
+          (err) => toast(errorMessage(err), { tone: 'error', cause: err, code: 'settings-failed' }),
         );
       }}
     >
@@ -383,7 +383,7 @@ function RecoveryCode({ address, onDone }: { address: string; onDone: () => void
       <button
         type="button"
         className="elum-btn elum-btn--quiet elum-btn--sm"
-        onClick={() => api.resendRecovery().then(() => toast('We sent a new code'), (err) => toast(errorMessage(err), { tone: 'error' }))}
+        onClick={() => api.resendRecovery().then(() => toast('We sent a new code'), (err) => toast(errorMessage(err), { tone: 'error', cause: err, code: 'settings-failed' }))}
       >
         Send a new code
       </button>
