@@ -1,11 +1,15 @@
-import { Archive, BadgeCheck, BellOff, Paperclip, SquarePen } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { BellOff } from 'lucide-react';
+import { AttachIcon, ComposeIcon, VerifiedIcon } from '../components/icons/ElumIcons';
+import { ArchiveIcon, UnreadIcon } from '../components/icons/ElumIcons';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { api, errorMessage, type InboxCard, type InboxView, type ThreadSummary } from '../api';
 import { displayName } from '../api/validation';
 import { Avatar } from '../components/Avatar';
 import { ProductGlyph, TypeMark, type Product } from '../components/Brand';
-import { Loader } from '../components/Loader';
+import { useToast } from '../components/Toast';
+import { prefersReducedMotion } from '../lib/hooks';
+import type { TypeSettings } from '../settings/typeSettings';
 import { useMediaQuery } from '../lib/hooks';
 import { leadPerson, namesOf } from '../lib/format';
 import { formatFull, formatWhen } from '../lib/time';
@@ -13,6 +17,8 @@ import { useType } from '../state/TypeProvider';
 import { openElsewhere } from '../lib/elum';
 import { ThreadView } from '../thread/ThreadView';
 import './inbox.css';
+import { useFavicon } from '../lib/favicon';
+import { SupportLink } from '../components/SupportLink';
 
 const VIEWS: { view: InboxView; label: string; title: string }[] = [
   { view: 'inbox', label: 'All', title: 'Inbox' },
@@ -44,9 +50,14 @@ export function InboxPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const phone = useMediaQuery('(max-width: 860px)');
-  const { tick, openCompose, refreshCounts } = useType();
+  const { tick, openCompose, refreshCounts, settings } = useType();
+  const toast = useToast();
+  // Without the reading pane, an open conversation takes the whole width, as on phones.
+  const single = phone || !settings.readingPane;
+  const [leaving, setLeaving] = useState(false);
 
   const threadId = params.threadId ?? null;
+  useFavicon(threadId ? '/favicons/message.svg' : null);
   const view: InboxView = useMemo(() => {
     if (params.view && VIEWS.some((v) => v.view === params.view)) return params.view as InboxView;
     if (threadId) {
@@ -93,18 +104,43 @@ export function InboxPage() {
   }, [threads, cards]);
 
   const title = VIEWS.find((v) => v.view === view)!.title;
-  const showList = !phone || !threadId;
+  const showList = !single || !threadId;
+  const listPath = { pathname: view === 'inbox' ? '/' : `/view/${view}`, search: location.search };
+
+  useEffect(() => setLeaving(false), [threadId]);
+
+  // On one column the conversation slides back out before the list returns.
+  const back = () => {
+    if (!single || prefersReducedMotion()) return navigate(listPath);
+    setLeaving(true);
+    window.setTimeout(() => navigate(listPath), 200);
+  };
+
+  const swipe = async (thread: ThreadSummary) => {
+    try {
+      if (settings.swipe === 'archive') {
+        await api.move([thread.id], 'archive');
+        toast('Archived', { action: { label: 'Undo', onClick: () => void api.move([thread.id], thread.folder).then(load) } });
+      } else {
+        await api.markRead(thread.id, thread.unread);
+      }
+      void load();
+      refreshCounts();
+    } catch (e) {
+      toast(errorMessage(e), { tone: 'error', cause: e, code: 'inbox-failed' });
+    }
+  };
   const linkFor = (id: string) => ({ pathname: `/t/${id}`, search: location.search });
 
   return (
-    <div className="inbox" data-thread-open={!!threadId || undefined}>
+    <div className="inbox" data-thread-open={!!threadId || undefined} data-pane={single ? 'off' : undefined} data-leaving={leaving || undefined}>
       {showList && (
         <section className="inbox__list" aria-label={title}>
           <header className="inbox__head">
             <div className="inbox__title-row">
               <h1 className="inbox__title">{query ? `Results for “${query}”` : title}</h1>
               <button type="button" className="elum-btn elum-btn--product inbox__compose" onClick={() => openCompose()}>
-                <SquarePen size={18} strokeWidth={1.75} />
+                <ComposeIcon size={18} strokeWidth={1.75} />
                 <span>Compose</span>
               </button>
             </div>
@@ -128,13 +164,12 @@ export function InboxPage() {
               <button type="button" className="elum-btn elum-btn--secondary elum-btn--sm" onClick={() => void load()}>
                 Try again
               </button>
+              <SupportLink app="type" code="inbox-failed" message={error} />
             </div>
           )}
 
           {threads === null && !error ? (
-            <div className="inbox__loading">
-              <Loader size={36} label="Loading conversations" />
-            </div>
+            <ListSkeleton />
           ) : rows.length === 0 && !error ? (
             <div className="empty-state inbox__empty">
               <TypeMark size={64} />
@@ -147,14 +182,21 @@ export function InboxPage() {
               )}
             </div>
           ) : (
-            <ul className="thread-list">
-              {rows.map((row) =>
+            <ul className="thread-list" key={`${view}:${query}`}>
+              {rows.map((row, i) =>
                 row.kind === 'thread' ? (
-                  <li key={row.thread.id}>
-                    <ThreadRow thread={row.thread} active={row.thread.id === threadId} to={linkFor(row.thread.id)} />
+                  <li key={row.thread.id} className="list-in" style={{ '--i': Math.min(i, 12) } as CSSProperties}>
+                    <ThreadRow
+                      thread={row.thread}
+                      active={row.thread.id === threadId}
+                      to={linkFor(row.thread.id)}
+                      compact={settings.density === 'compact'}
+                      swipe={phone ? settings.swipe : 'off'}
+                      onSwipe={() => void swipe(row.thread)}
+                    />
                   </li>
                 ) : (
-                  <li key={row.card.id}>
+                  <li key={row.card.id} className="list-in" style={{ '--i': Math.min(i, 12) } as CSSProperties}>
                     <CardRow
                       card={row.card}
                       onChange={() => {
@@ -171,14 +213,11 @@ export function InboxPage() {
       )}
 
       {threadId ? (
-        <ThreadView
-          key={threadId}
-          threadId={threadId}
-          onBack={() => navigate({ pathname: view === 'inbox' ? '/' : `/view/${view}`, search: location.search })}
-          onChanged={() => void load()}
-        />
+        <div className="thread-pane" key={threadId}>
+          <ThreadView threadId={threadId} onBack={back} onChanged={() => void load()} />
+        </div>
       ) : (
-        !phone && (
+        !single && (
           <section className="inbox__none" aria-label="Conversation">
             <TypeMark size={72} />
             <p className="muted">Choose a conversation, or write a new message.</p>
@@ -189,23 +228,90 @@ export function InboxPage() {
   );
 }
 
-function ThreadRow({ thread, active, to }: { thread: ThreadSummary; active: boolean; to: { pathname: string; search: string } }) {
+/** Grey rows in the shape of the list, shimmering while it loads. */
+function ListSkeleton() {
+  return (
+    <ul className="thread-list skeleton-list" aria-busy="true" aria-label="Loading conversations">
+      {Array.from({ length: 8 }, (_, i) => (
+        <li key={i} className="skeleton-row" aria-hidden="true">
+          <span className="skeleton skeleton--avatar" />
+          <span className="skeleton-row__lines">
+            <span className="skeleton" style={{ width: `${46 + ((i * 17) % 30)}%` }} />
+            <span className="skeleton" style={{ width: `${70 + ((i * 11) % 24)}%` }} />
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const SWIPE_AT = 88;
+
+function ThreadRow({
+  thread,
+  active,
+  to,
+  compact,
+  swipe,
+  onSwipe,
+}: {
+  thread: ThreadSummary;
+  active: boolean;
+  to: { pathname: string; search: string };
+  compact: boolean;
+  swipe: TypeSettings['swipe'];
+  onSwipe: () => void;
+}) {
   const lead = leadPerson(thread.participants) ?? { address: thread.lastSender.address, name: thread.lastSender.name, isElum: false };
   const names = namesOf(thread.participants);
   const elum = thread.kind === 'elum';
-  return (
+  const start = useRef<{ x: number; y: number } | null>(null);
+  const moved = useRef(false);
+  const [dx, setDx] = useState(0);
+  const swipeLabel = swipe === 'archive' ? 'Archive' : thread.unread ? 'Mark read' : 'Mark unread';
+  const link = (
     <Link
       to={to}
       className="thread-row"
       data-unread={thread.unread || undefined}
+      data-dragging={dx !== 0 || undefined}
       aria-current={active ? 'page' : undefined}
       aria-label={`${thread.unread ? 'Unread. ' : ''}${names}. ${thread.subject ?? ''} ${thread.snippet}`}
-    >
-      <Avatar user={{ name: displayName(lead), color: lead.isElum ? lead.color : null }} size={40} />
+      style={dx ? { transform: `translateX(${dx}px)` } : undefined}
+      onClickCapture={(e) => {
+        if (moved.current) e.preventDefault();
+        moved.current = false;
+      }}
+      {...(swipe !== 'off' && {
+        onPointerDown: (e: ReactPointerEvent) => {
+          if (e.pointerType !== 'mouse') start.current = { x: e.clientX, y: e.clientY };
+        },
+        onPointerMove: (e: ReactPointerEvent) => {
+          if (!start.current) return;
+          const x = e.clientX - start.current.x;
+          const y = e.clientY - start.current.y;
+          if (!moved.current && Math.abs(y) > Math.abs(x)) {
+            start.current = null;
+            return;
+          }
+          if (Math.abs(x) > 8) moved.current = true;
+          setDx(Math.min(0, Math.max(x, -160)));
+        },
+        onPointerUp: () => {
+          if (start.current && dx <= -SWIPE_AT) onSwipe();
+          start.current = null;
+          setDx(0);
+        },
+        onPointerCancel: () => {
+          start.current = null;
+          setDx(0);
+        },
+      })}
+    >      <Avatar user={{ name: displayName(lead), color: lead.isElum ? lead.color : null }} size={compact ? 32 : 40} />
       <span className="thread-row__text">
         <span className="thread-row__top">
           <span className="thread-row__names">{names}</span>
-          {elum && <BadgeCheck className="thread-row__elum" size={14} strokeWidth={2} aria-label="ELUM conversation" />}
+          {elum && <VerifiedIcon className="thread-row__elum" size={14} strokeWidth={2} aria-label="ELUM conversation" />}
           {thread.messageCount > 1 && <span className="thread-row__count">{thread.messageCount}</span>}
           <time className="thread-row__time" dateTime={thread.lastMessageAt} title={formatFull(thread.lastMessageAt)}>
             {formatWhen(thread.lastMessageAt)}
@@ -218,14 +324,24 @@ function ThreadRow({ thread, active, to }: { thread: ThreadSummary; active: bool
       </span>
       <span className="thread-row__marks">
         {thread.unread && <span className="thread-row__dot" aria-hidden="true" />}
-        {thread.hasAttachments && <Paperclip size={14} strokeWidth={2} aria-label="Has attachments" />}
+        {thread.hasAttachments && <AttachIcon size={14} strokeWidth={2} aria-label="Has attachments" />}
         {thread.muted && <BellOff size={14} strokeWidth={2} aria-label="Muted" />}
       </span>
     </Link>
   );
+  if (swipe === 'off') return link;
+  return (
+    <div className="swipe" data-armed={dx <= -SWIPE_AT || undefined}>
+      <span className="swipe__action" aria-hidden="true">
+        {swipe === 'archive' ? <ArchiveIcon size={20} strokeWidth={1.75} /> : <UnreadIcon size={20} strokeWidth={1.75} />}
+        {swipeLabel}
+      </span>
+      {link}
+    </div>
+  );
 }
 
-const SERVICE_NAMES: Record<string, string> = { elum: 'ELUM', write: 'Write', type: 'Type', browse: 'Browse', make: 'Make', store: 'Store' };
+const SERVICE_NAMES: Record<string, string> = { elum: 'ELUM', write: 'Write', type: 'Type', browse: 'Browse', make: 'Make', store: 'Store', inquire: 'Inquire' };
 
 /** A platform event shown in the inbox: "Ola shared “Field notes” with you", with Open in Write (handoff 8.5). */
 function CardRow({ card, onChange }: { card: InboxCard; onChange: () => void }) {
@@ -269,7 +385,7 @@ function CardRow({ card, onChange }: { card: InboxCard; onChange: () => void }) 
           )}
           {!card.archivedAt ? (
             <button type="button" className="icon-btn" aria-label="Archive" data-tip="Archive" onClick={() => mark({ read: true, archived: true })}>
-              <Archive size={16} strokeWidth={1.75} />
+              <ArchiveIcon size={16} strokeWidth={1.75} />
             </button>
           ) : (
             <button type="button" className="elum-btn elum-btn--quiet elum-btn--sm" onClick={() => mark({ archived: false })}>

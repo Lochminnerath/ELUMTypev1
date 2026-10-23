@@ -5,7 +5,7 @@
 // Every handler is idempotent (cards are unique per event), because a lease can expire mid-work.
 //
 // Runs every minute from pg_cron with "Authorization: Bearer <CRON_SECRET>".
-// Secrets: CRON_SECRET, and ELUM_WRITE_URL (such as https://elumwrite.netlify.app) for card links.
+// Secrets: CRON_SECRET, and ELUM_WRITE_URL (such as https://writebyelum.netlify.app) for card links.
 // Switch the consumer on once this is deployed: update elum.consumers set active = true where id = 'type-inbox';
 
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
@@ -17,7 +17,7 @@ const CONSUMER = 'type-inbox';
 Deno.serve(async (req) => {
   if (!hasSecret(req, Deno.env.get('CRON_SECRET'))) return fail('unauthorized', 'Not allowed.');
   const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
-  const writeUrl = (Deno.env.get('ELUM_WRITE_URL') ?? 'https://elumwrite.netlify.app').replace(/\/+$/, '');
+  const writeUrl = (Deno.env.get('ELUM_WRITE_URL') ?? 'https://writebyelum.netlify.app').replace(/\/+$/, '');
 
   const claimed = await db.rpc('elum_claim_deliveries', { p_consumer: CONSUMER, p_limit: 50 });
   if (claimed.error) return fail('server', claimed.error.message);

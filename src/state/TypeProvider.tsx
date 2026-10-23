@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { ACCOUNT_SETTINGS_KEY, parseSettings, readLocalSettings, writeLocalSettings, type TypeSettings } from '../settings/typeSettings';
 import { api, errorMessage, type Attachment, type Counts, type DraftInput, type LiveEvent, type Mailbox, type TypePreferences, type TypeStart } from '../api';
 
 /** What opens the composer: a new message, a reply, a forward, or a saved draft. */
@@ -27,6 +28,9 @@ interface TypeContextValue {
   clearPendingRecovery: () => void;
   imageSenders: Set<string>;
   allowImages: (address: string, allow: boolean) => Promise<void>;
+  /** How Type looks and behaves (reading pane, density, undo send and the rest). */
+  settings: TypeSettings;
+  updateSettings: (patch: Partial<TypeSettings>) => void;
 }
 
 const TypeContext = createContext<TypeContextValue | null>(null);
@@ -39,6 +43,40 @@ export function TypeProvider({ children }: { children: ReactNode }) {
   const [tick, setTick] = useState(0);
   const [lastEvent, setLastEvent] = useState<LiveEvent | null>(null);
   const [compose, setCompose] = useState<ComposeRequest | null>(null);
+  const [settings, setSettings] = useState<TypeSettings>(readLocalSettings);
+
+  // The account's copy wins over this browser's, so settings follow people between devices.
+  useEffect(() => {
+    let cancelled = false;
+    api.accountData?.().then(
+      (data) => {
+        if (cancelled || !data[ACCOUNT_SETTINGS_KEY]) return;
+        const next = parseSettings(data[ACCOUNT_SETTINGS_KEY]);
+        writeLocalSettings(next);
+        setSettings(next);
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const updateSettings = useCallback((patch: Partial<TypeSettings>) => {
+    setSettings((s) => {
+      const next = { ...s, ...patch };
+      writeLocalSettings(next);
+      void api.updateAccountData?.({ [ACCOUNT_SETTINGS_KEY]: next }).catch(() => undefined);
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.density = settings.density;
+    return () => {
+      delete document.documentElement.dataset.density;
+    };
+  }, [settings.density]);
 
   useEffect(() => {
     let cancelled = false;
@@ -108,8 +146,10 @@ export function TypeProvider({ children }: { children: ReactNode }) {
       imageSenders,
       allowImages,
       clearPendingRecovery: () => setStart((s) => (s ? { ...s, pendingRecovery: null } : s)),
+      settings,
+      updateSettings,
     }),
-    [start, startError, defaultMailbox, counts, refreshCounts, tick, lastEvent, compose, imageSenders, allowImages],
+    [start, startError, defaultMailbox, counts, refreshCounts, tick, lastEvent, compose, imageSenders, allowImages, settings, updateSettings],
   );
   return <TypeContext.Provider value={value}>{children}</TypeContext.Provider>;
 }

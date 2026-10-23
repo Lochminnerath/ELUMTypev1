@@ -1,0 +1,469 @@
+/* What's new: an animated tour of each update, in the spirit of a browser's update page. */
+
+.wn {
+  --wn-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+  color: var(--ink);
+}
+.wn::backdrop {
+  background: rgba(14, 18, 32, 0.38);
+  backdrop-filter: blur(10px) saturate(1.2);
+  animation: wn-backdrop 420ms var(--wn-ease);
+}
+.wn[data-leaving]::backdrop {
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.wn__card {
+  position: relative;
+  width: min(600px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 32px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  box-shadow: 0 30px 80px rgba(14, 18, 32, 0.28), 0 2px 6px rgba(14, 18, 32, 0.08);
+  animation: wn-card-in 620ms var(--wn-ease);
+  touch-action: pan-y;
+}
+.wn[data-leaving] .wn__card {
+  animation: wn-card-out 260ms ease forwards;
+}
+
+/* ---- Hero: a slowly moving aurora in the app's colour, with the step's picture on top ---- */
+.wn__hero {
+  position: relative;
+  height: 268px;
+  flex: none;
+  overflow: hidden;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--wn-accent) 14%, var(--surface)), var(--surface-glass));
+}
+.wn__aurora span {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  filter: blur(46px);
+  opacity: 0.55;
+  animation: wn-drift 14s ease-in-out infinite alternate;
+}
+.wn__aurora span:nth-child(1) {
+  left: -90px;
+  top: -140px;
+  background: color-mix(in srgb, var(--wn-accent) 70%, transparent);
+}
+.wn__aurora span:nth-child(2) {
+  right: -120px;
+  top: -60px;
+  background: rgba(112, 147, 248, 0.45);
+  animation-duration: 17s;
+  animation-delay: -4s;
+}
+.wn__aurora span:nth-child(3) {
+  left: 30%;
+  bottom: -220px;
+  background: color-mix(in srgb, var(--wn-accent) 45%, #ffffff);
+  animation-duration: 20s;
+  animation-delay: -8s;
+}
+[data-theme='dark'] .wn__aurora span {
+  opacity: 0.32;
+}
+
+.wn__scene {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  animation: wn-scene-in 700ms var(--wn-ease);
+}
+.wn__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  backdrop-filter: blur(8px);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+.wn__close:hover {
+  background: var(--surface);
+  transform: rotate(90deg);
+}
+
+/* ---- Words and controls ---- */
+.wn__body {
+  padding: 28px 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+}
+.wn__copy {
+  min-height: 132px;
+  animation: wn-copy-next 560ms var(--wn-ease);
+}
+.wn__copy[data-dir='back'] {
+  animation-name: wn-copy-back;
+}
+.wn__eyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--wn-accent) 70%, var(--ink));
+}
+.wn__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 38px;
+  letter-spacing: -0.015em;
+}
+.wn__text {
+  margin: 10px 0 0;
+  max-width: 46ch;
+  color: var(--ink-muted);
+  font-size: 16px;
+  line-height: 26px;
+}
+.wn__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.wn__dots {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.wn__dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--hairline);
+  cursor: pointer;
+  transition: width 420ms var(--wn-ease), background 300ms ease;
+}
+.wn__dot[aria-selected='true'] {
+  width: 26px;
+  background: var(--wn-accent);
+}
+.wn__actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+.wn__actions .elum-btn {
+  gap: 6px;
+}
+.wn__next svg {
+  transition: transform 200ms var(--wn-ease);
+}
+.wn__next:hover svg {
+  transform: translateX(3px);
+}
+
+/* ---- The pictures ---- */
+.wn-scene {
+  width: 100%;
+  height: 100%;
+}
+.wn-scene__svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.wn-scene--mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.wn-scene--mark .wn-scene__svg {
+  position: absolute;
+  inset: 0;
+}
+.wn-mark {
+  position: relative;
+  filter: drop-shadow(0 18px 30px rgba(112, 147, 248, 0.25));
+  animation: wn-pop 900ms var(--wn-ease) both, wn-float 6s ease-in-out 900ms infinite;
+}
+.wn-glass-hi {
+  stop-color: #ffffff;
+}
+.wn-glass-lo {
+  stop-color: #e9ecf4;
+}
+[data-theme='dark'] .wn-glass-hi {
+  stop-color: #232a40;
+}
+[data-theme='dark'] .wn-glass-lo {
+  stop-color: #171c2e;
+}
+.wn-disc {
+  stroke: color-mix(in srgb, var(--wn-accent) 45%, #eef0f6);
+  stroke-width: 2;
+  filter: drop-shadow(0 14px 24px rgba(112, 147, 248, 0.18));
+}
+[data-theme='dark'] .wn-disc {
+  stroke: color-mix(in srgb, var(--wn-accent) 60%, transparent);
+}
+.wn-accent {
+  fill: var(--wn-accent);
+}
+.wn-line {
+  fill: none;
+  stroke: #cdd2e0;
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+[data-theme='dark'] .wn-line {
+  stroke: #3a4362;
+}
+.wn-ripple {
+  fill: none;
+  stroke: var(--wn-accent);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wn-ripple 2.7s ease-out infinite;
+}
+.wn-check {
+  fill: none;
+  stroke: var(--wn-accent);
+  stroke-width: 12;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 120;
+  animation: wn-draw 700ms var(--wn-ease) 400ms both;
+}
+
+.wn-from-left,
+.wn-from-right,
+.wn-fan,
+.wn-pop,
+.wn-rise,
+.wn-burst,
+.wn-bob,
+.wn-hop,
+.wn-ghost {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.wn-from-left {
+  animation: wn-from-left 900ms var(--wn-ease) both;
+}
+.wn-from-right {
+  animation: wn-from-right 900ms var(--wn-ease) both;
+}
+.wn-fade {
+  animation: wn-fade 600ms ease both;
+}
+.wn-fly {
+  animation: wn-fly 900ms var(--wn-ease) both;
+}
+.wn-bob {
+  animation: wn-float 3.2s ease-in-out 2s infinite;
+}
+.wn-rise {
+  animation: wn-rise 800ms var(--wn-ease) both;
+}
+.wn-pop {
+  animation: wn-pop 800ms var(--wn-ease) both;
+}
+.wn-fan--left {
+  transform: translate(-112px, 10px) rotate(-9deg);
+  animation: wn-fan-left 900ms var(--wn-ease) both;
+}
+.wn-fan--right {
+  transform: translate(112px, 10px) rotate(9deg);
+  animation: wn-fan-right 900ms var(--wn-ease) both;
+}
+.wn-burst {
+  animation: wn-burst 1100ms var(--wn-ease) both, wn-float 5s ease-in-out 1.2s infinite;
+}
+.wn-hop {
+  animation: wn-hop 3.2s var(--wn-ease) 600ms infinite;
+}
+.wn-ghost {
+  opacity: 0.18;
+  animation: wn-ghost 3.2s ease-in-out infinite;
+}
+
+@keyframes wn-backdrop {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes wn-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.96);
+  }
+}
+@keyframes wn-card-out {
+  to {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+@keyframes wn-drift {
+  to {
+    transform: translate(60px, 40px) scale(1.15);
+  }
+}
+@keyframes wn-scene-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+@keyframes wn-copy-next {
+  from {
+    opacity: 0;
+    transform: translateX(36px);
+    filter: blur(4px);
+  }
+}
+@keyframes wn-copy-back {
+  from {
+    opacity: 0;
+    transform: translateX(-36px);
+    filter: blur(4px);
+  }
+}
+@keyframes wn-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+@keyframes wn-float {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes wn-ripple {
+  from {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.3);
+  }
+}
+@keyframes wn-draw {
+  from {
+    stroke-dashoffset: 120;
+  }
+}
+@keyframes wn-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-90px);
+  }
+}
+@keyframes wn-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(90px);
+  }
+}
+@keyframes wn-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes wn-fly {
+  from {
+    opacity: 0;
+    transform: translate(-124px, 66px) scale(0.4);
+  }
+}
+@keyframes wn-rise {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}
+@keyframes wn-fan-left {
+  from {
+    transform: none;
+  }
+}
+@keyframes wn-fan-right {
+  from {
+    transform: none;
+  }
+}
+@keyframes wn-burst {
+  from {
+    opacity: 0;
+    transform: translate(calc(var(--x) * -1), calc(var(--y) * -1)) scale(0.2);
+  }
+}
+@keyframes wn-hop {
+  0%,
+  12% {
+    transform: none;
+  }
+  45%,
+  62% {
+    transform: translate(180px, 23px) scale(0.72);
+  }
+  95%,
+  100% {
+    transform: none;
+  }
+}
+@keyframes wn-ghost {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (max-width: 560px) {
+  .wn__hero {
+    height: 200px;
+  }
+  .wn__body {
+    padding: 22px 20px 20px;
+  }
+  .wn__title {
+    font-size: 25px;
+    line-height: 32px;
+  }
+  .wn__copy {
+    min-height: 150px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wn *,
+  .wn::backdrop {
+    animation: none !important;
+    transition: none !important;
+  }
+}

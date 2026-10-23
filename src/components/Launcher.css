@@ -1,0 +1,163 @@
+/* The ELUM launcher: round app tiles in a small glass window that opens from the top bar. */
+
+.floating-panel.launcher {
+  --launcher-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  width: min(340px, calc(100vw - 24px));
+  padding: 0;
+  border-radius: 28px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(18px) saturate(1.3);
+  box-shadow: 0 24px 60px rgba(14, 18, 32, 0.22), 0 2px 6px rgba(14, 18, 32, 0.08);
+  transform-origin: top right;
+  animation: launcher-open 420ms var(--launcher-ease);
+}
+.launcher__window {
+  position: relative;
+  padding: 18px 16px 16px;
+}
+/* A soft wash of every app's colour behind the tiles. */
+.launcher__window::before {
+  content: '';
+  position: absolute;
+  inset: -40% -20% auto;
+  height: 220px;
+  background:
+    radial-gradient(closest-side at 22% 60%, rgba(245, 154, 82, 0.16), transparent),
+    radial-gradient(closest-side at 50% 40%, rgba(63, 196, 160, 0.14), transparent),
+    radial-gradient(closest-side at 78% 60%, rgba(236, 127, 169, 0.16), transparent);
+  pointer-events: none;
+}
+.launcher__head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 6px 14px;
+}
+.launcher__head img {
+  height: 18px;
+  width: auto;
+}
+.launcher__tagline {
+  font-size: 11px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.launcher__grid {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+.launcher__grid > li {
+  animation: launcher-tile 520ms var(--launcher-ease) both;
+  animation-delay: calc(var(--i) * 40ms + 60ms);
+}
+.launcher__tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 4px 10px;
+  border-radius: 20px;
+  color: var(--ink);
+  text-decoration: none;
+  text-align: center;
+  outline: none;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+a.launcher__tile:hover,
+.launcher__tile:focus-visible {
+  background: color-mix(in srgb, var(--app) 10%, transparent);
+}
+.launcher__tile[aria-disabled] {
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* The round glass disc each mark sits in. */
+.launcher__disc {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #eef0f6 85%);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--app) 35%, #eef0f6), 0 8px 18px rgba(112, 147, 248, 0.14);
+  transition: transform 320ms var(--launcher-ease), box-shadow 320ms var(--launcher-ease);
+}
+[data-theme='dark'] .launcher__disc {
+  background: radial-gradient(circle at 35% 30%, #232a40, #171c2e 85%);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--app) 45%, transparent), 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+.launcher__disc img {
+  width: 44px;
+  height: 44px;
+}
+a.launcher__tile:hover .launcher__disc,
+a.launcher__tile:focus-visible .launcher__disc {
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: inset 0 0 0 2px var(--app), 0 14px 26px color-mix(in srgb, var(--app) 30%, transparent);
+}
+a.launcher__tile:active .launcher__disc {
+  transform: scale(0.96);
+}
+/* The app you are in: a ring in its colour, gently breathing. */
+.launcher__tile[data-here] .launcher__disc::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2px solid var(--app);
+  animation: launcher-here 2.6s ease-in-out infinite;
+}
+.launcher__name {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+}
+.launcher__note {
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--ink-muted);
+}
+.launcher__tile[data-here] .launcher__note {
+  color: color-mix(in srgb, var(--app) 75%, var(--ink));
+  font-weight: 600;
+}
+
+@keyframes launcher-open {
+  from {
+    opacity: 0;
+    transform: scale(0.88) translateY(-8px);
+  }
+}
+@keyframes launcher-tile {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.85);
+  }
+}
+@keyframes launcher-here {
+  50% {
+    opacity: 0.45;
+    transform: scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-panel.launcher,
+  .launcher__grid > li,
+  .launcher__tile[data-here] .launcher__disc::after {
+    animation: none;
+  }
+}

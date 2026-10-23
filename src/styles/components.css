@@ -42,6 +42,7 @@
 .product-glyph[data-product='browse'] { color: var(--browse-deep); }
 .product-glyph[data-product='make'] { color: var(--make-deep); }
 .product-glyph[data-product='store'] { color: var(--store-deep); }
+.product-glyph[data-product='inquire'] { color: var(--inquire-deep); }
 
 .user-menu__trigger {
   display: inline-flex;
@@ -148,4 +149,17 @@
 .avatar--picture {
   object-fit: cover;
   background: var(--surface-glass);
+}
+
+/* Support links: quiet, and only shown where something went wrong. */
+.support-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.support-link {
+  text-decoration: none;
 }

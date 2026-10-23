@@ -271,7 +271,7 @@ reset role;
 
 -- --------------------------------------------------------------- inbox cards
 set role service_role;
-select type_add_card(9001, :'fen', 'write', 'Ola Owner shared “Field notes” with you', 'You can comment.', 'Open in Write', 'https://elumwrite.netlify.app/d/x', :'ola');
+select type_add_card(9001, :'fen', 'write', 'Ola Owner shared “Field notes” with you', 'You can comment.', 'Open in Write', 'https://writebyelum.netlify.app/d/x', :'ola');
 select type_add_card(9001, :'fen', 'write', 'again', null, null, null, null);
 reset role;
 select expect((select count(*) from type.inbox_cards) = 1, 'one card per event');

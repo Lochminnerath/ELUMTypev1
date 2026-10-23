@@ -103,6 +103,7 @@
 }
 .rail__item {
   position: relative;
+  text-decoration: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,93 +164,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.preview-note {
-  grid-area: note;
-  margin: 0;
-  padding: 6px 16px;
-  font-size: 12px;
-  text-align: center;
-  color: var(--ink-muted);
-  background: var(--surface);
-  border-top: 1px solid var(--hairline);
-}
-
-/* App switcher (handoff 9.6). */
-.switcher {
-  width: 300px;
-  padding: 12px;
-}
-.switcher__label {
-  margin: 4px 6px 10px;
-}
-.switcher__grid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-.switcher__item {
-  display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 12px 6px 10px;
-  border-radius: 12px;
-  color: var(--ink);
-  text-decoration: none;
-  text-align: center;
+  gap: var(--space-3);
 }
-a.switcher__item:hover,
-a.switcher__item:focus-visible {
-  background: var(--surface-glass);
-}
-.switcher__item[data-here] {
-  background: var(--accent-mist);
-}
-.switcher__item[aria-disabled] {
-  opacity: 0.5;
-}
-.switcher__glyph {
-  display: inline-flex;
-  width: 40px;
-  height: 40px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: var(--surface-glass);
-}
-.switcher__name {
-  font-weight: 600;
-  font-size: 14px;
-}
-.switcher__account {
-  display: block;
-  margin: 10px 4px 2px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: var(--surface-glass);
-  color: var(--ink);
-  font-weight: 600;
-  text-align: center;
-  text-decoration: none;
-}
-.switcher__account:hover {
-  background: var(--hairline);
-}
-.switcher__note {
-  font-size: 11px;
-  line-height: 14px;
-  color: var(--ink-muted);
-}
-
-/* Phones: the rail becomes a bottom tab bar, the lockup becomes the mark. */
+/* Phones: the wordmark stays, search gets a row of its own, and the rail becomes a tab bar with
+   a mist pill behind the active icon, like the other ELUM apps. */
 @media (max-width: 560px) {
   .shell {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: var(--bar-h) minmax(0, 1fr) auto auto;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
     grid-template-areas:
       'bar'
       'main'
@@ -257,28 +180,35 @@ a.switcher__item:focus-visible {
       'note';
   }
   .app-bar {
-    gap: var(--space-2);
-    padding: 0 8px 0 12px;
+    flex-wrap: wrap;
+    gap: 0 var(--space-2);
+    min-height: var(--bar-h);
+    padding: calc(env(safe-area-inset-top) + 6px) 8px 6px 16px;
   }
-  .app-bar__lockup {
-    display: none;
+  .app-bar__brand {
+    height: 44px;
   }
-  .app-bar__mark {
-    display: inline-flex;
+  .app-bar__lockup :is(svg, img) {
+    height: 24px;
+    width: auto;
   }
-  .app-bar__end .icon-btn--round[aria-label^='Switch to'],
-  .app-bar__end .icon-btn--round[aria-label='ELUM apps'] {
+  .app-bar__end .icon-btn--round[aria-label^='Switch to'] {
     display: none;
   }
   .app-bar__search {
-    min-width: 0;
+    order: 3;
+    flex: 1 0 100%;
+    max-width: none;
+    height: 44px;
+    margin: 4px 8px 4px 0;
   }
-  .app-bar__search {
-    height: 40px;
+  /* Inside a conversation the screen is for the messages; search is one Back away. */
+  .shell[data-thread-open] .app-bar__search {
+    display: none;
   }
   .rail {
     flex-direction: row;
-    padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
     border-right: 0;
     border-top: 1px solid var(--hairline);
   }
@@ -287,35 +217,45 @@ a.switcher__item:focus-visible {
     flex-direction: row;
     justify-content: space-around;
   }
-  .rail__item {
-    width: auto;
-    min-width: 56px;
-    height: 48px;
-    flex-direction: column;
-    gap: 2px;
-    margin: 0;
-    padding: 0 6px;
-  }
+  .rail__item,
   .rail__item--bottom {
-    min-width: 56px;
+    width: auto;
+    min-width: 60px;
+    height: auto;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 0 4px;
+    background: none;
+  }
+  .rail__item:hover,
+  .rail__item[data-active] {
+    background: none;
+  }
+  /* The icon sits in a pill that fills with mist when active. */
+  .rail__item > svg {
+    box-sizing: content-box;
+    padding: 4px 18px;
+    border-radius: var(--radius-pill);
+    transition: background-color var(--dur-hover) var(--ease);
+  }
+  .rail__item[data-active] > svg {
+    background: var(--accent-mist);
+  }
+  .rail__item[data-active]::before {
+    display: none;
   }
   .rail__text {
     display: block;
     font-size: 11px;
-    line-height: 13px;
+    line-height: 14px;
     font-weight: 600;
   }
-  .rail__item[data-active]::before {
-    left: 30%;
-    right: 30%;
-    top: -4px;
-    bottom: auto;
-    width: auto;
-    height: 3px;
-    border-radius: 0 0 3px 3px;
+  .rail__item[data-active] .rail__text {
+    color: var(--ink);
   }
   .rail__badge {
-    top: 0;
-    right: 4px;
+    top: -4px;
+    right: 6px;
   }
 }

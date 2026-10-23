@@ -311,15 +311,6 @@
 .auth__warning[data-empty] {
   color: var(--warning);
 }
-.auth__local {
-  margin: var(--space-4) 0 0;
-  padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--surface-glass);
-  font-size: 13px;
-  line-height: 20px;
-}
-
 @media (max-width: 860px) {
   .auth {
     grid-template-columns: 1fr;

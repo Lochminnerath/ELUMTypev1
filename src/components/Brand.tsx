@@ -29,7 +29,7 @@ export function ElumLockup({ height = 20 }: { height?: number }) {
   );
 }
 
-export type Product = 'elum' | 'write' | 'type' | 'browse' | 'make' | 'store';
+export type Product = 'elum' | 'write' | 'type' | 'browse' | 'make' | 'store' | 'inquire';
 
 /**
  * Small monoline product glyphs (handoff Appendix C) for the app switcher, notification dots and
@@ -75,6 +75,14 @@ const GLYPHS: Record<Product, React.ReactNode> = {
     <>
       <circle cx="12" cy="12" r="8.5" />
       <circle cx="12" cy="14.5" r="2.6" fill="currentColor" stroke="none" />
+    </>
+  ),
+  inquire: (
+    <>
+      <circle cx="12" cy="8.7" r="4.6" />
+      <circle cx="8.62" cy="14.55" r="4.6" />
+      <circle cx="15.38" cy="14.55" r="4.6" />
+      <circle cx="12" cy="12.6" r="1.3" fill="currentColor" stroke="none" />
     </>
   ),
 };

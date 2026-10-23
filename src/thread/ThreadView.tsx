@@ -1,24 +1,6 @@
-import {
-  Archive,
-  ArrowLeft,
-  Bell,
-  BellOff,
-  ChevronDown,
-  ChevronUp,
-  Download,
-  Ellipsis,
-  Forward,
-  ImageOff,
-  Inbox,
-  MailOpen,
-  Paperclip,
-  Reply,
-  ReplyAll,
-  ShieldAlert,
-  ShieldCheck,
-  Trash2,
-  TriangleAlert,
-} from 'lucide-react';
+import { ArrowLeft, Bell, BellOff, ChevronDown, ChevronUp, Ellipsis, ImageOff, ShieldCheck } from 'lucide-react';
+import { AttachIcon, WarningIcon } from '../components/icons/ElumIcons';
+import { ArchiveIcon, DeleteIcon, DownloadIcon, ForwardIcon, ReplyAllIcon, ReplyIcon, RestoreIcon, SpamIcon, UnreadIcon } from '../components/icons/ElumIcons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { api, errorMessage, type Address, type Attachment, type Folder, type Message, type Thread } from '../api';
@@ -32,15 +14,17 @@ import { formatBytes, namesOf } from '../lib/format';
 import { cleanRichText, linkify } from '../lib/sanitize';
 import { formatFull, formatWhen } from '../lib/time';
 import { useType } from '../state/TypeProvider';
+import { MARK_READ_DELAY } from '../settings/typeSettings';
 import { EmailFrame } from './EmailFrame';
 import { ReplyDock } from './ReplyDock';
 import './thread.css';
+import { SupportLinks } from '../components/SupportLink';
 
 const ICON = { size: 18, strokeWidth: 1.75 };
 
 /** One conversation: ELUM messages as bubbles, email as cards, and the reply dock (handoff 8.2). */
 export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; onBack: () => void; onChanged: () => void }) {
-  const { tick, lastEvent, refreshCounts, openCompose, defaultMailbox, start } = useType();
+  const { tick, lastEvent, refreshCounts, openCompose, defaultMailbox, start, settings } = useType();
   const toast = useToast();
   const navigate = useNavigate();
   const [thread, setThread] = useState<Thread | null>(null);
@@ -49,6 +33,8 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
   const count = useRef(0);
   // A new dock (and draft) after each reply.
   const [dock, setDock] = useState(0);
+  const readTimer = useRef<number | undefined>(undefined);
+  const markLater = settings.markRead === 'delay';
 
   const load = useCallback(async () => {
     try {
@@ -57,18 +43,26 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
       setError(null);
       const latest = t.messages[t.messages.length - 1];
       if (latest && (!t.me.lastReadAt || latest.createdAt > t.me.lastReadAt) && !latest.mine) {
-        await api.markRead(threadId);
-        refreshCounts();
-        onChanged();
+        const markRead = async () => {
+          await api.markRead(threadId);
+          refreshCounts();
+          onChanged();
+        };
+        // With "after 2 seconds", glancing at a conversation leaves it unread.
+        window.clearTimeout(readTimer.current);
+        if (markLater) readTimer.current = window.setTimeout(() => void markRead(), MARK_READ_DELAY);
+        else await markRead();
       }
     } catch (e) {
       setError(errorMessage(e));
     }
-  }, [threadId, refreshCounts, onChanged]);
+  }, [threadId, refreshCounts, onChanged, markLater]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => () => window.clearTimeout(readTimer.current), []);
 
   // Live: reload when something in this thread changes.
   useEffect(() => {
@@ -92,6 +86,7 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
         <button type="button" className="elum-btn elum-btn--secondary" onClick={onBack}>
           Back to the inbox
         </button>
+        <SupportLinks app="type" code="open-failed" message={error} />
       </section>
     );
   }
@@ -174,16 +169,16 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
         <div className="thread__actions">
           {folder === 'inbox' ? (
             <button type="button" className="icon-btn icon-btn--round" aria-label="Archive" data-tip="Archive" onClick={() => void move('archive', 'Archived')}>
-              <Archive {...ICON} />
+              <ArchiveIcon {...ICON} />
             </button>
           ) : (
             <button type="button" className="icon-btn icon-btn--round" aria-label="Move to inbox" data-tip="Move to inbox" onClick={() => void move('inbox', 'Moved to inbox')}>
-              <Inbox {...ICON} />
+              <RestoreIcon {...ICON} />
             </button>
           )}
           {folder !== 'trash' && (
             <button type="button" className="icon-btn icon-btn--round" aria-label="Delete" data-tip="Delete" onClick={() => void move('trash', 'Moved to trash')}>
-              <Trash2 {...ICON} />
+              <DeleteIcon {...ICON} />
             </button>
           )}
           <Menu
@@ -192,7 +187,7 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
             items={[
               {
                 label: 'Mark as unread',
-                icon: <MailOpen size={16} strokeWidth={1.75} />,
+                icon: <UnreadIcon size={16} strokeWidth={1.75} />,
                 onSelect: () =>
                   void api.markRead(thread.id, false).then(() => {
                     onChanged();
@@ -205,7 +200,7 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
                 : { label: 'Mute', hint: 'No notifications for this conversation', icon: <BellOff size={16} strokeWidth={1.75} />, onSelect: () => void api.setMuted(thread.id, true).then(load) },
               folder === 'spam'
                 ? { label: 'Not spam', icon: <ShieldCheck size={16} strokeWidth={1.75} />, onSelect: () => void move('inbox', 'Moved to inbox') }
-                : { label: 'Report spam', icon: <ShieldAlert size={16} strokeWidth={1.75} />, onSelect: () => void move('spam', 'Moved to spam') },
+                : { label: 'Report spam', icon: <SpamIcon size={16} strokeWidth={1.75} />, onSelect: () => void move('spam', 'Moved to spam') },
             ]}
             trigger={(props) => (
               <button type="button" className="icon-btn icon-btn--round" aria-label="More actions" data-tip="More" {...props}>
@@ -228,7 +223,7 @@ export function ThreadView({ threadId, onBack, onChanged }: { threadId: string; 
                 {isEmail ? (
                   <EmailCard
                     message={m}
-                    collapsed={i < thread.messages.length - 3}
+                    collapsed={settings.conversationView && i < thread.messages.length - 3}
                     onReply={() => reply(m, false)}
                     onReplyAll={() => reply(m, true)}
                     onForward={() => forward(m)}
@@ -261,7 +256,7 @@ function StatusLine({ message }: { message: Message }) {
   if (message.failed.length) {
     return (
       <span className="msg-status msg-status--failed">
-        <TriangleAlert size={14} strokeWidth={2} aria-hidden="true" />
+        <WarningIcon size={14} strokeWidth={2} aria-hidden="true" />
         Not delivered to {message.failed.join(', ')}
       </span>
     );
@@ -361,13 +356,13 @@ function EmailCard({
         </time>
         <div className="email-card__actions">
           <button type="button" className="icon-btn" aria-label="Reply" data-tip="Reply" onClick={onReply}>
-            <Reply size={16} strokeWidth={1.75} />
+            <ReplyIcon size={16} strokeWidth={1.75} />
           </button>
           <button type="button" className="icon-btn" aria-label="Reply all" data-tip="Reply all" onClick={onReplyAll}>
-            <ReplyAll size={16} strokeWidth={1.75} />
+            <ReplyAllIcon size={16} strokeWidth={1.75} />
           </button>
           <button type="button" className="icon-btn" aria-label="Forward" data-tip="Forward" onClick={onForward}>
-            <Forward size={16} strokeWidth={1.75} />
+            <ForwardIcon size={16} strokeWidth={1.75} />
           </button>
         </div>
       </header>
@@ -467,10 +462,10 @@ function Attachments({ list }: { list: Attachment[] }) {
               })
             }
           >
-            <Paperclip size={14} strokeWidth={2} aria-hidden="true" />
+            <AttachIcon size={14} strokeWidth={2} aria-hidden="true" />
             <span className="attachment-chip__name">{a.name}</span>
             <span className="attachment-chip__size">{formatBytes(a.bytes)}</span>
-            <Download size={14} strokeWidth={2} aria-label="Download" />
+            <DownloadIcon size={14} strokeWidth={2} aria-label="Download" />
           </button>
         </li>
       ))}

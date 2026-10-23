@@ -1,7 +1,8 @@
-import { Archive, Contact, Inbox, Mail, Search, Settings, X, type LucideIcon } from 'lucide-react';
+import type { ComponentType } from 'react';
+import { Contact, Inbox, Mail, Search, Settings, X } from 'lucide-react';
+import { ArchiveIcon } from '../components/icons/ElumIcons';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate, useSearchParams } from 'react-router';
-import { api } from '../api';
 import { TypeLockup, TypeMark } from '../components/Brand';
 import { Loader } from '../components/Loader';
 import { NotificationBell } from '../components/NotificationBell';
@@ -9,13 +10,14 @@ import { UserMenu } from '../components/UserMenu';
 import { Compose } from '../compose/Compose';
 import { useType } from '../state/TypeProvider';
 import { ThemeToggle } from '../theme/ThemeToggle';
-import { AppSwitcher } from './AppSwitcher';
+import { ElumLauncher } from '../components/ElumLauncher';
 import './shell.css';
+import { SupportLinks } from '../components/SupportLink';
 
 interface RailItem {
   to: string;
   label: string;
-  icon: LucideIcon;
+  icon: ComponentType<{ size?: number; strokeWidth?: number }>;
   badge?: number;
   match?: (path: string, view: string | null) => boolean;
 }
@@ -29,6 +31,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const searchRef = useRef<HTMLInputElement>(null);
   const query = params.get('q') ?? '';
   const onList = !location.pathname.startsWith('/contacts') && !location.pathname.startsWith('/settings');
+  const section = onList ? 'inbox' : location.pathname.split('/')[1];
 
   // "/" focuses search, like most mail apps.
   useEffect(() => {
@@ -46,7 +49,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const items: RailItem[] = [
     { to: '/', label: 'Inbox', icon: Inbox, badge: counts.unread + counts.cards, match: (p) => p === '/' || p.startsWith('/t/') || p.startsWith('/view/elum') || p.startsWith('/view/email') },
     { to: '/view/unread', label: 'Unread', icon: Mail },
-    { to: '/view/archive', label: 'Archived', icon: Archive },
+    { to: '/view/archive', label: 'Archived', icon: ArchiveIcon },
     { to: '/contacts', label: 'Contacts', icon: Contact },
   ];
 
@@ -59,12 +62,13 @@ export function Shell({ children }: { children: ReactNode }) {
         <button type="button" className="elum-btn elum-btn--primary" onClick={retryStart}>
           Try again
         </button>
+        <SupportLinks app="type" code="inbox-failed" message={startError} />
       </div>
     );
   }
 
   return (
-    <div className="shell">
+    <div className="shell" data-thread-open={location.pathname.startsWith('/t/') || undefined}>
       <a className="skip-link" href="#main">
         Skip to messages
       </a>
@@ -119,7 +123,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </form>
         )}
         <div className="app-bar__end">
-          <AppSwitcher />
+          <ElumLauncher />
           <NotificationBell />
           <ThemeToggle />
           <UserMenu />
@@ -143,7 +147,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 data-tip-placement="right"
               >
                 <Icon size={20} strokeWidth={1.75} />
-                {!!item.badge && <span className="rail__badge">{item.badge > 99 ? '99+' : item.badge}</span>}
+                {!!item.badge && <span className="rail__badge" key={item.badge}>{item.badge > 99 ? '99+' : item.badge}</span>}
                 <span className="rail__text">{item.label}</span>
               </NavLink>
             );
@@ -163,14 +167,19 @@ export function Shell({ children }: { children: ReactNode }) {
       </nav>
 
       <main id="main" className="shell__main">
-        {start ? children : <div className="shell__loading"><Loader size={48} label="Opening your inbox" /></div>}
+        {start ? (
+          // Each section fades in as you move between them; conversations open inside the inbox.
+          <div className="route-in" key={section}>
+            {children}
+          </div>
+        ) : (
+          <div className="shell__loading">
+            <Loader size={48} label="Opening your inbox" />
+            <p className="muted">Opening your inbox</p>
+          </div>
+        )}
       </main>
 
-      {api.mode === 'local' && (
-        <p className="preview-note" role="note">
-          Preview: messages stay in this browser. Email to outside addresses is simulated.
-        </p>
-      )}
       {start && compose && <Compose key={compose.draft.id ?? 'new'} request={compose} />}
     </div>
   );

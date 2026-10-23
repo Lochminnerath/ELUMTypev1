@@ -44,6 +44,13 @@ export interface TypeApi {
   /** Whether a Type handle can be taken, for checking as people type. */
   handleAvailable(handle: string): Promise<boolean>;
   onUnauthorized(handler: () => void): () => void;
+  /**
+   * Small values remembered on the account itself (Supabase user metadata), so they follow
+   * people to every browser and device, such as the last What's new they saw. Optional.
+   */
+  accountData?(): Promise<Record<string, unknown>>;
+  /** Merges flat keys into the account's remembered values. */
+  updateAccountData?(patch: Record<string, unknown>): Promise<void>;
 
   // Type
   /** Joins the Type service, makes the mailbox, returns addresses and settings. Call on every start. */

@@ -10,10 +10,12 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const { status } = useAuth();
   const location = useLocation();
   if (status === 'loading') return <FullPageLoader brand />;
+  // Waiting for another device to approve: the approval screen covers everything.
+  if (status === 'approval') return null;
   if (status === 'signed-out') {
     const next = location.pathname + location.search;
     // One sign-in for every ELUM app: ELUM Account sends people straight back, signed in.
-    if (accountsSignIn && signInThroughAccount(next)) return <FullPageLoader brand label="Signing you in" />;
+    if (accountsSignIn && signInThroughAccount(next, true)) return <FullPageLoader brand label="Signing you in" />;
     return <Navigate to={next === '/' ? '/signin' : `/signin?next=${encodeURIComponent(next)}`} replace />;
   }
   return <>{children}</>;

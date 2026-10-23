@@ -1,4 +1,5 @@
-import { AtSign, ExternalLink } from 'lucide-react';
+import { AtSign } from 'lucide-react';
+import { OpenIcon } from '../components/icons/ElumIcons';
 import { useEffect, useState, type FormEvent } from 'react';
 import { api, errorMessage, isApiError, type Mailbox } from '../api';
 import { useAuth, useUser } from '../auth/AuthProvider';
@@ -12,7 +13,7 @@ import './pages.css';
 export function SettingsPage() {
   const user = useUser();
   const { updateName } = useAuth();
-  const { start, setPreferences, setMailbox, defaultMailbox, clearPendingRecovery } = useType();
+  const { start, setPreferences, setMailbox, defaultMailbox, clearPendingRecovery, settings, updateSettings } = useType();
   const toast = useToast();
   const prefs = start!.preferences;
   const [name, setName] = useState(user.name);
@@ -33,7 +34,7 @@ export function SettingsPage() {
       toast(message, { tone: 'success' });
     } catch (e) {
       if (isApiError(e, 'conflict')) toast('Your settings changed on another device. Reload to see them.', { tone: 'error' });
-      else toast(errorMessage(e), { tone: 'error' });
+      else toast(errorMessage(e), { tone: 'error', cause: e, code: 'settings-failed' });
     } finally {
       setBusy(false);
     }
@@ -45,7 +46,7 @@ export function SettingsPage() {
       await updateName(name);
       toast('Name saved', { tone: 'success' });
     } catch (err) {
-      toast(errorMessage(err), { tone: 'error' });
+      toast(errorMessage(err), { tone: 'error', cause: err, code: 'settings-failed' });
     }
   };
 
@@ -62,7 +63,7 @@ export function SettingsPage() {
           <>
             <p className="muted settings-hint">Your name, picture, language and who can message you live in your ELUM account, for every app.</p>
             <button type="button" className="elum-btn elum-btn--secondary elum-btn--sm" onClick={() => openAccount('/profile')}>
-              Edit your profile <ExternalLink size={14} strokeWidth={1.75} />
+              Edit your profile <OpenIcon size={14} strokeWidth={1.75} />
             </button>
           </>
         ) : (
@@ -109,12 +110,87 @@ export function SettingsPage() {
               </p>
               {ACCOUNT_URL && (
                 <button type="button" className="elum-btn elum-btn--secondary elum-btn--sm" onClick={() => openAccount('/addresses')}>
-                  Your addresses <ExternalLink size={14} strokeWidth={1.75} />
+                  Your addresses <OpenIcon size={14} strokeWidth={1.75} />
                 </button>
               )}
             </div>
           </div>
         )}
+      </section>
+
+      <section className="settings-section" aria-labelledby="s-layout">
+        <h2 id="s-layout" className="settings-section__title">Reading</h2>
+        <label className="switch-row">
+          <span>
+            <strong>Reading pane</strong>
+            <span className="muted settings-hint">Open conversations beside the list. Turn it off to give a conversation the whole window. Phones always use one column.</span>
+          </span>
+          <input type="checkbox" className="switch" role="switch" checked={settings.readingPane} onChange={(e) => updateSettings({ readingPane: e.target.checked })} />
+        </label>
+        <Choice
+          label="Density"
+          hint="Compact fits more conversations on the screen."
+          value={settings.density}
+          options={[
+            ['comfortable', 'Comfortable'],
+            ['compact', 'Compact'],
+          ]}
+          onChange={(density) => updateSettings({ density })}
+        />
+        <label className="switch-row">
+          <span>
+            <strong>Conversation view for email</strong>
+            <span className="muted settings-hint">Fold earlier emails under the latest three. Turn it off to see every email in a conversation open.</span>
+          </span>
+          <input type="checkbox" className="switch" role="switch" checked={settings.conversationView} onChange={(e) => updateSettings({ conversationView: e.target.checked })} />
+        </label>
+        <Choice
+          label="Mark as read"
+          hint="With a short wait, glancing at a conversation leaves it unread."
+          value={settings.markRead}
+          options={[
+            ['open', 'When opened'],
+            ['delay', 'After 2 seconds'],
+          ]}
+          onChange={(markRead) => updateSettings({ markRead })}
+        />
+        <Choice
+          label="Swipe left on phones"
+          value={settings.swipe}
+          options={[
+            ['archive', 'Archive'],
+            ['read', 'Read or unread'],
+            ['off', 'Nothing'],
+          ]}
+          onChange={(swipe) => updateSettings({ swipe })}
+        />
+      </section>
+
+      <section className="settings-section" aria-labelledby="s-sending">
+        <h2 id="s-sending" className="settings-section__title">Sending</h2>
+        <Choice
+          label="Replying to an email with several people"
+          hint="What the reply bar starts with. You can switch it for each reply."
+          value={settings.replyDefault}
+          options={[
+            ['all', 'Reply all'],
+            ['reply', 'Reply to sender'],
+          ]}
+          onChange={(replyDefault) => updateSettings({ replyDefault })}
+        />
+        <Choice
+          label="Time to undo sending"
+          hint="Type waits this long before a message goes, with Undo while it waits."
+          value={settings.undoSeconds}
+          options={[
+            [0, 'Off'],
+            [5, '5 s'],
+            [10, '10 s'],
+            [20, '20 s'],
+          ]}
+          onChange={(undoSeconds) => updateSettings({ undoSeconds })}
+        />
+        <p className="muted settings-hint">Your email signature is set for each address, under Your addresses.</p>
       </section>
 
       <section className="settings-section" aria-labelledby="s-images">
@@ -179,10 +255,41 @@ export function SettingsPage() {
           <h2 id="s-account" className="settings-section__title">Your ELUM account</h2>
           <p className="muted settings-hint">Password, people and privacy, which notifications reach you, and deleting your account. One account for Write, Type and the rest.</p>
           <button type="button" className="elum-btn elum-btn--secondary elum-btn--sm" onClick={() => openAccount('/')}>
-            Open your ELUM account <ExternalLink size={14} strokeWidth={1.75} />
+            Open your ELUM account <OpenIcon size={14} strokeWidth={1.75} />
           </button>
         </section>
       )}
+    </div>
+  );
+}
+
+/** A labelled row of pressed buttons for one setting. */
+function Choice<T extends string | number>({
+  label,
+  hint,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  value: T;
+  options: [T, string][];
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="settings-choice">
+      <span className="settings-choice__label">
+        <strong>{label}</strong>
+        {hint && <span className="muted settings-hint">{hint}</span>}
+      </span>
+      <div className="segmented" role="group" aria-label={label}>
+        {options.map(([v, text]) => (
+          <button key={String(v)} type="button" aria-pressed={value === v} onClick={() => onChange(v)}>
+            {text}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -202,7 +309,7 @@ function MailboxSettings({ mailbox, isDefault, onSaved }: { mailbox: Mailbox; is
             onSaved(m);
             toast('Saved', { tone: 'success' });
           },
-          (err) => toast(errorMessage(err), { tone: 'error' }),
+          (err) => toast(errorMessage(err), { tone: 'error', cause: err, code: 'settings-failed' }),
         );
       }}
     >
@@ -276,7 +383,7 @@ function RecoveryCode({ address, onDone }: { address: string; onDone: () => void
       <button
         type="button"
         className="elum-btn elum-btn--quiet elum-btn--sm"
-        onClick={() => api.resendRecovery().then(() => toast('We sent a new code'), (err) => toast(errorMessage(err), { tone: 'error' }))}
+        onClick={() => api.resendRecovery().then(() => toast('We sent a new code'), (err) => toast(errorMessage(err), { tone: 'error', cause: err, code: 'settings-failed' }))}
       >
         Send a new code
       </button>

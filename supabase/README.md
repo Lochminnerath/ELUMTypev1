@@ -23,7 +23,7 @@ to `20261020000000_elum_platform.sql`. Then, in order:
 Then set where Type lives, for links in notifications:
 
 ```sql
-update elum.services set url = 'https://elumtype.netlify.app' where id = 'type';
+update elum.services set url = 'https://typebyelum.netlify.app' where id = 'type';
 ```
 
 Type reads its data through `public.type_*` functions, so the `type` schema does **not** need to be

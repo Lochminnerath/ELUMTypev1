@@ -1,9 +1,12 @@
-import { CircleUser, LogOut, Monitor, Moon, PenLine, Sun } from 'lucide-react';
+import { CircleUser, Megaphone, Monitor, Moon, Sun } from 'lucide-react';
+import { RenameIcon } from './icons/ElumIcons';
+import { SignOutIcon } from './icons/ElumIcons';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { api, errorMessage } from '../api';
 import { useAuth, useUser } from '../auth/AuthProvider';
 import { useTheme } from '../theme/ThemeProvider';
+import { openWhatsNew } from '../whatsnew/WhatsNew';
 import { Avatar } from './Avatar';
 import { Dialog } from './Dialog';
 import { Menu } from './Menu';
@@ -62,12 +65,12 @@ export function UserMenu() {
             ? {
                 label: 'Profile and picture',
                 hint: 'In your ELUM account',
-                icon: <PenLine {...ICON} />,
+                icon: <RenameIcon {...ICON} />,
                 onSelect: () => openAccount('/profile'),
               }
             : {
                 label: 'Edit your name',
-                icon: <PenLine {...ICON} />,
+                icon: <RenameIcon {...ICON} />,
                 onSelect: () => {
                   setName(user.name);
                   setError(null);
@@ -84,10 +87,11 @@ export function UserMenu() {
                 },
               ]
             : []),
+          { label: "What's new", icon: <Megaphone {...ICON} />, onSelect: openWhatsNew },
           'separator',
           {
             label: 'Sign out',
-            icon: <LogOut {...ICON} />,
+            icon: <SignOutIcon {...ICON} />,
             onSelect: async () => {
               await signOut();
               // Signed in through ELUM Account: sign out there too, then come back.

@@ -15,8 +15,13 @@ const SHARED_HOSTS = ['netlify.app', 'vercel.app', 'pages.dev', 'github.io', 'on
  * under that domain, or the domain is a shared host like netlify.app. Null means the session stays
  * in this site's own storage, so a wrong setting can never silently drop every sign-in.
  */
+/** Where every ELUM app lives (write.elum.services, type.elum.services, ...). */
+export const FAMILY_DOMAIN = 'elum.services';
+
 export function usableCookieDomain(domain: string | undefined, hostname: string): string | null {
-  const bare = domain?.trim().replace(/^\./, '').toLowerCase();
+  // Unset, the ELUM family domain is used whenever the app is served from it, so every ELUM app
+  // shares one sign-in even when a site is missing VITE_ELUM_COOKIE_DOMAIN.
+  const bare = (domain?.trim() || FAMILY_DOMAIN).replace(/^\./, '').toLowerCase();
   if (!bare || !bare.includes('.')) return null;
   const host = hostname.toLowerCase();
   if (host !== bare && !host.endsWith(`.${bare}`)) return null;

@@ -10,7 +10,7 @@
 //   CAPTCHA_SECRET     The provider's secret key.
 //   BREVO_API_KEY      For recovery codes. Without it, the code is not sent (the person can resend later).
 //   TYPE_EMAIL_FROM    Sender, for example "ELUM Type <hello@type.elum.services>".
-//   APP_URL            Where Type is hosted, for images in emails, for example https://elumtype.netlify.app
+//   APP_URL            Where Type is hosted, for images in emails, for example https://typebyelum.netlify.app
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase.
 //
 // Deploy with --no-verify-jwt: people signing up have no session yet.

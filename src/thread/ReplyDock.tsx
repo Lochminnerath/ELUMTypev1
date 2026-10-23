@@ -1,4 +1,6 @@
-import { Maximize2, Paperclip, ReplyAll, SendHorizontal, X } from 'lucide-react';
+import { Maximize2, X } from 'lucide-react';
+import { AttachIcon, SendIcon } from '../components/icons/ElumIcons';
+import { ReplyAllIcon } from '../components/icons/ElumIcons';
 import { useRef, useState } from 'react';
 import { errorMessage, isApiError, type Address, type Message, type Thread } from '../api';
 import { displayName, replySubject } from '../api/validation';
@@ -8,6 +10,7 @@ import { Loader } from '../components/Loader';
 import { useToast } from '../components/Toast';
 import { formatBytes } from '../lib/format';
 import { useType } from '../state/TypeProvider';
+import { delayedSend } from '../settings/typeSettings';
 
 const ICON = { size: 18, strokeWidth: 1.75 };
 
@@ -27,11 +30,11 @@ export function ReplyDock({
   onSent: () => void;
   canEmail: boolean;
 }) {
-  const { openCompose } = useType();
+  const { openCompose, settings } = useType();
   const toast = useToast();
   const last = [...thread.messages].reverse().find((m) => !m.auto) ?? thread.messages[thread.messages.length - 1];
   const isEmail = thread.kind === 'email';
-  const [all, setAll] = useState(true);
+  const [all, setAll] = useState(settings.replyDefault === 'all');
   const target = last ? recipients(last, all) : { to: [], cc: [] };
   const [draftId] = useState(() => crypto.randomUUID());
   const d = useDraft({
@@ -61,11 +64,13 @@ export function ReplyDock({
     setError(null);
     try {
       // The recipients follow the latest message when the reply goes out.
-      await d.send({ to: target.to, cc: target.cc });
-      onSent();
+      const wait = settings.undoSeconds;
+      const later = delayedSend(wait, () => d.send({ to: target.to, cc: target.cc }));
+      if (wait > 0) toast(`Sending in ${wait} seconds`, { duration: wait * 1000, action: { label: 'Undo', onClick: () => later.cancel() } });
+      if (await later.done) onSent();
     } catch (e) {
       setError(errorMessage(e));
-      toast(errorMessage(e), { tone: 'error' });
+      toast(errorMessage(e), { tone: 'error', cause: e, code: 'send-failed' });
     } finally {
       setSending(false);
     }
@@ -84,7 +89,7 @@ export function ReplyDock({
         <ul className="attachment-list dock__files" aria-label="Attachments">
           {d.attachments.map((a) => (
             <li key={a.id} className="attachment-chip">
-              <Paperclip size={14} strokeWidth={2} aria-hidden="true" />
+              <AttachIcon size={14} strokeWidth={2} aria-hidden="true" />
               <span className="attachment-chip__name">{a.name}</span>
               <span className="attachment-chip__size">{formatBytes(a.bytes)}</span>
               <button type="button" className="address-chip__remove" aria-label={`Remove ${a.name}`} onClick={() => void d.removeAttachment(a)}>
@@ -111,7 +116,7 @@ export function ReplyDock({
             data-tip={all ? 'Reply all' : 'Reply to sender'}
             onClick={() => setAll((v) => !v)}
           >
-            <ReplyAll {...ICON} />
+            <ReplyAllIcon {...ICON} />
           </button>
         )}
         <label htmlFor="dock-text" className="visually-hidden">
@@ -149,7 +154,7 @@ export function ReplyDock({
           }}
         />
         <button type="button" className="icon-btn icon-btn--round" aria-label="Attach files" data-tip="Attach files" onClick={() => fileRef.current?.click()}>
-          <Paperclip {...ICON} />
+          <AttachIcon {...ICON} />
         </button>
         <button
           type="button"
@@ -165,7 +170,7 @@ export function ReplyDock({
           <Maximize2 {...ICON} />
         </button>
         <button type="submit" className="elum-btn elum-btn--product dock__send" disabled={sending || (!d.draft.text.trim() && !d.attachments.length)}>
-          {sending ? <Loader size={18} label="Sending" /> : <SendHorizontal {...ICON} />}
+          {sending ? <Loader size={18} label="Sending" /> : <SendIcon {...ICON} />}
           <span className="dock__send-label">Send</span>
         </button>
       </form>

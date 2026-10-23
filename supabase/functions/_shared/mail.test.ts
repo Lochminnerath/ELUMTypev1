@@ -143,12 +143,12 @@ describe('cards', () => {
     channel: 'type_inbox',
   };
   it('turns Write shares into cards that open Write', () => {
-    expect(cardFor(row, { write: 'https://elumwrite.netlify.app' })).toEqual({
+    expect(cardFor(row, { write: 'https://writebyelum.netlify.app' })).toEqual({
       service: 'write',
       title: 'Ola shared “Field notes” with you',
       body: 'You can comment.',
       actionLabel: 'Open in Write',
-      actionUrl: 'https://elumwrite.netlify.app/d/d',
+      actionUrl: 'https://writebyelum.netlify.app/d/d',
     });
   });
   it('skips people who read email, invites and events without a notification', () => {

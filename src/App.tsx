@@ -3,6 +3,7 @@ import { AuthProvider } from './auth/AuthProvider';
 import { RedirectIfSignedIn, RequireAuth } from './auth/guards';
 import { TypeMark } from './components/Brand';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { SupportLinks } from './components/SupportLink';
 import { ToastProvider } from './components/Toast';
 import { TooltipLayer } from './components/TooltipLayer';
 import { InboxPage } from './inbox/InboxPage';
@@ -13,6 +14,8 @@ import { SettingsPage } from './pages/SettingsPage';
 import { Shell } from './shell/Shell';
 import { TypeProvider } from './state/TypeProvider';
 import { ThemeProvider } from './theme/ThemeProvider';
+import { WhatsNew } from './whatsnew/WhatsNew';
+import { SecurityLayer } from './security/SecurityLayer';
 
 function SignedIn({ children }: { children: React.ReactNode }) {
   return (
@@ -45,6 +48,8 @@ export function App() {
             </ErrorBoundary>
           </BrowserRouter>
           <TooltipLayer />
+          <WhatsNew />
+          <SecurityLayer />
         </AuthProvider>
       </ToastProvider>
     </ThemeProvider>
@@ -60,6 +65,7 @@ function NotFound() {
       <Link to="/" className="elum-btn elum-btn--primary">
         Go to your inbox
       </Link>
+      <SupportLinks app="type" code="not-found" message="We could not find that page" />
     </div>
   );
 }

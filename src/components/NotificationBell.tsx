@@ -9,7 +9,7 @@ import { Popover } from './Popover';
 import './NotificationBell.css';
 
 const POLL_MS = 60_000;
-const SERVICE_NAMES: Record<string, string> = { elum: 'ELUM', write: 'Write', type: 'Type', browse: 'Browse', make: 'Make', store: 'Store' };
+const SERVICE_NAMES: Record<string, string> = { elum: 'ELUM', write: 'Write', type: 'Type', browse: 'Browse', make: 'Make', store: 'Store', inquire: 'Inquire' };
 
 /**
  * Notifications from every ELUM service: shares and comments in Write, messages in Type, and

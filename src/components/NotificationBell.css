@@ -122,3 +122,7 @@
 .notice__service[data-service='store'] {
   color: var(--store-deep);
 }
+
+.notice__service[data-service='inquire'] {
+  color: var(--inquire-deep);
+}

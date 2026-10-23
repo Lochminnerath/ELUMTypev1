@@ -50,6 +50,13 @@
 .chips::-webkit-scrollbar {
   display: none;
 }
+/* With room to spare the chips wrap instead of hiding the last ones off the edge. */
+@media (min-width: 561px) {
+  .chips {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
 .chip {
   flex: none;
   display: inline-flex;
@@ -259,6 +266,7 @@
 .card-row__service[data-service='browse'] { color: var(--browse-deep); }
 .card-row__service[data-service='make'] { color: var(--make-deep); }
 .card-row__service[data-service='store'] { color: var(--store-deep); }
+.card-row__service[data-service='inquire'] { color: var(--inquire-deep); }
 .card-row__service[data-service='elum'] { color: var(--elum-blue-deep); }
 .card-row__dot {
   position: absolute;
@@ -275,11 +283,150 @@
   }
 }
 @media (max-width: 560px) {
-  .inbox__compose span {
+  .inbox__head {
+    padding: var(--space-3) var(--space-4) var(--space-2);
+  }
+  .inbox__title-row {
+    margin-bottom: var(--space-2);
+  }
+  .inbox__title {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  /* Compose floats above the tab bar, where a thumb can reach it. */
+  .inbox__compose {
+    position: fixed;
+    z-index: 20;
+    right: 16px;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    height: 52px;
+    padding: 0 20px;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 8px 24px rgba(20, 26, 46, 0.18);
+  }
+  .inbox[data-thread-open] .inbox__compose {
     display: none;
   }
-  .inbox__compose {
-    width: 44px;
-    padding: 0;
+  /* The tab bar already has Inbox, Unread and Archived. */
+  .chip[href$='/view/unread'],
+  .chip[href*='/view/unread?'],
+  .chip[href$='/view/archive'],
+  .chip[href*='/view/archive?'] {
+    display: none;
   }
+  .thread-list {
+    padding: 4px 4px 96px;
+  }
+  .thread-row,
+  .card-row {
+    padding: 12px;
+  }
+  .thread-row__names {
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .thread-row__line,
+  .thread-row__snippet {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .card-row__actions {
+    flex-wrap: wrap;
+  }
+}
+
+/* Without the reading pane an open conversation takes the whole width, with a Back button. */
+.inbox[data-pane='off'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+.inbox[data-pane='off'] .inbox__list {
+  border-right: 0;
+}
+.inbox[data-pane='off'] .thread__back {
+  display: inline-flex;
+}
+
+/* Compact density: tighter rows and smaller pictures. */
+[data-density='compact'] .thread-row,
+[data-density='compact'] .card-row {
+  gap: 10px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+[data-density='compact'] .thread-row__marks {
+  padding-top: 20px;
+}
+[data-density='compact'] .thread-row__line {
+  gap: 4px;
+}
+
+/* Loading: rows in the shape of the list, with a soft shimmer passing over them. */
+.skeleton-list {
+  overflow: hidden;
+}
+.skeleton-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+}
+.skeleton-row__lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.skeleton {
+  position: relative;
+  display: block;
+  height: 12px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--hairline) 60%, var(--surface-glass));
+}
+.skeleton--avatar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+.skeleton-row__lines .skeleton:first-child {
+  height: 14px;
+}
+
+/* Swipe on phones: the action waits under the row and fills with colour once far enough. */
+.swipe {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.swipe__action {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-right: 20px;
+  border-radius: 12px;
+  background: var(--surface-glass);
+  color: var(--ink-muted);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color var(--dur-hover) var(--ease), color var(--dur-hover) var(--ease);
+}
+.swipe[data-armed] .swipe__action {
+  background: var(--accent);
+  color: #141a2e;
+}
+.swipe .thread-row {
+  background: var(--surface);
+  touch-action: pan-y;
+  transition: transform var(--dur-panel) var(--ease), background-color var(--dur-hover) var(--ease);
+}
+.swipe .thread-row[aria-current='page'] {
+  background: var(--accent-mist);
+}
+.swipe .thread-row[data-dragging] {
+  transition: none;
 }

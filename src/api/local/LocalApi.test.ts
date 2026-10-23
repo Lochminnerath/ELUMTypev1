@@ -14,6 +14,18 @@ async function account(api: LocalApi, handle: string) {
 }
 
 describe('LocalApi', () => {
+  it('remembers small values on each account, apart from other accounts', async () => {
+    const api = fast();
+    await account(api, 'kai');
+    await api.updateAccountData({ whatsnew_type: 'r2' });
+    await api.updateAccountData({ type_settings: { density: 'compact' } });
+    expect(await api.accountData()).toEqual({ whatsnew_type: 'r2', type_settings: { density: 'compact' } });
+    await account(api, 'lua');
+    expect(await api.accountData()).toEqual({});
+    await api.signOut();
+    expect(await api.accountData()).toEqual({});
+  });
+
   it('delivers ELUM messages at once, with a notification', async () => {
     const api = fast();
     const ada = await account(api, 'ada');
