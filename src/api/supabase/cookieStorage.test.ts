@@ -50,11 +50,11 @@ describe('usableCookieDomain', () => {
 
   it('falls back to site storage when a browser would refuse the cookie', () => {
     // Set for elum.services but served from netlify.app: every sign-in would vanish.
-    expect(usableCookieDomain('.elum.services', 'elumwrite.netlify.app')).toBeNull();
+    expect(usableCookieDomain('.elum.services', 'writebyelum.netlify.app')).toBeNull();
     // netlify.app is a public suffix; its sites cannot share cookies.
-    expect(usableCookieDomain('.netlify.app', 'elumwrite.netlify.app')).toBeNull();
+    expect(usableCookieDomain('.netlify.app', 'writebyelum.netlify.app')).toBeNull();
     expect(usableCookieDomain('', 'localhost')).toBeNull();
-    expect(usableCookieDomain(undefined, 'elumtype.netlify.app')).toBeNull();
+    expect(usableCookieDomain(undefined, 'typebyelum.netlify.app')).toBeNull();
   });
 
   it('shares the ELUM sign-in on elum.services even when the setting is missing', () => {

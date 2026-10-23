@@ -9,15 +9,15 @@ interface ImportMetaEnv {
   readonly VITE_ELUM_COOKIE_DOMAIN?: string;
   /** The domain Type addresses live on (elum.config type_domain). Defaults to type.elum.services. */
   readonly VITE_ELUM_TYPE_DOMAIN?: string;
-  /** Where Write is hosted. Defaults to https://elumwrite.netlify.app */
+  /** Where Write is hosted. Defaults to https://writebyelum.netlify.app */
   readonly VITE_ELUM_WRITE_URL?: string;
-  /** Where Type itself is hosted. Defaults to https://elumtype.netlify.app */
+  /** Where Type itself is hosted. Defaults to https://typebyelum.netlify.app */
   readonly VITE_ELUM_TYPE_URL?: string;
   readonly VITE_ELUM_MAKE_URL?: string;
   readonly VITE_ELUM_BROWSE_URL?: string;
-  /** Where ELUM Store is hosted. Defaults to https://elumstore.netlify.app. */
+  /** Where ELUM Store is hosted. Defaults to https://storebyelum.netlify.app. */
   readonly VITE_ELUM_STORE_URL?: string;
-  /** ELUM Account (such as https://elumaccounts.netlify.app). Set it to sign in through Accounts. */
+  /** ELUM Account (such as https://accountsbyelum.netlify.app). Set it to sign in through Accounts. */
   readonly VITE_ELUM_ACCOUNT_URL?: string;
 }
 

@@ -4,7 +4,7 @@ import { isSupportable, supportUrl } from './support';
 
 describe('supportUrl', () => {
   it('points at the support form in Browse, with the app', () => {
-    expect(supportUrl('write')).toBe('https://elumbrowse.netlify.app/app/inquire/f/support?app=write');
+    expect(supportUrl('write')).toBe('https://browsebyelum.netlify.app/app/inquire/f/support?app=write');
   });
 
   it('adds the code, message and page, encoded', () => {
@@ -23,7 +23,7 @@ describe('supportUrl', () => {
   });
 
   it('leaves out empty details', () => {
-    expect(supportUrl('store', { code: ' ', message: '' })).toBe('https://elumbrowse.netlify.app/app/inquire/f/support?app=store');
+    expect(supportUrl('store', { code: ' ', message: '' })).toBe('https://browsebyelum.netlify.app/app/inquire/f/support?app=store');
   });
 });
 

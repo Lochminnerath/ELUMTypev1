@@ -13,17 +13,17 @@ const clean = (v: string | undefined) => (v?.trim() ? v.trim().replace(/\/+$/, '
  * VITE_ELUM_ACCOUNT_URL to point at another ELUM Account, or to off for Type's own sign-in only.
  */
 const accountSetting = clean(env.VITE_ELUM_ACCOUNT_URL);
-export const ACCOUNT_URL = accountSetting === 'off' ? null : (accountSetting ?? 'https://elumaccounts.netlify.app');
-export const WRITE_URL = clean(env.VITE_ELUM_WRITE_URL) ?? 'https://elumwrite.netlify.app';
-export const TYPE_URL = clean(env.VITE_ELUM_TYPE_URL) ?? 'https://elumtype.netlify.app';
+export const ACCOUNT_URL = accountSetting === 'off' ? null : (accountSetting ?? 'https://accountsbyelum.netlify.app');
+export const WRITE_URL = clean(env.VITE_ELUM_WRITE_URL) ?? 'https://writebyelum.netlify.app';
+export const TYPE_URL = clean(env.VITE_ELUM_TYPE_URL) ?? 'https://typebyelum.netlify.app';
 /** Where ELUM Account lives, for the launcher, even when sign-in does not go through it. */
-export const ACCOUNT_HOME = ACCOUNT_URL ?? 'https://elumaccounts.netlify.app';
-export const MAKE_URL = clean(env.VITE_ELUM_MAKE_URL) ?? 'https://elummake.netlify.app';
-export const BROWSE_URL = clean(env.VITE_ELUM_BROWSE_URL) ?? 'https://elumbrowse.netlify.app';
-export const STORE_URL = clean(env.VITE_ELUM_STORE_URL) ?? 'https://elumstore.netlify.app';
-export const INQUIRE_URL = clean(env.VITE_ELUM_INQUIRE_URL) ?? 'https://eluminquire.netlify.app';
+export const ACCOUNT_HOME = ACCOUNT_URL ?? 'https://accountsbyelum.netlify.app';
+export const MAKE_URL = clean(env.VITE_ELUM_MAKE_URL) ?? 'https://makebyelum.netlify.app';
+export const BROWSE_URL = clean(env.VITE_ELUM_BROWSE_URL) ?? 'https://browsebyelum.netlify.app';
+export const STORE_URL = clean(env.VITE_ELUM_STORE_URL) ?? 'https://storebyelum.netlify.app';
+export const INQUIRE_URL = clean(env.VITE_ELUM_INQUIRE_URL) ?? 'https://inquirebyelum.netlify.app';
 /** The ELUM home, the public front door. It is not an app you sign in to. */
-export const HOME_URL = clean(env.VITE_ELUM_HOME_URL) ?? 'https://elum.services';
+export const HOME_URL = clean(env.VITE_ELUM_HOME_URL) ?? 'https://elum.netlify.app';
 
 const ELUM_ORIGINS = [ACCOUNT_URL, WRITE_URL, TYPE_URL, MAKE_URL, BROWSE_URL, STORE_URL, INQUIRE_URL].filter(Boolean).map((u) => new URL(u!).origin);
 
@@ -41,8 +41,12 @@ export function accountCanSignInAt(origin: string): boolean {
 export const accountsSignIn = !!ACCOUNT_URL && api.mode === 'remote' && accountCanSignInAt(window.location.origin);
 const TRIED = 'elum.handoff.tried';
 
-/** Sends a signed-out visitor to ELUM Account, which sends them back signed in to `next`. */
-export function signInThroughAccount(next: string) {
+/**
+ * Sends a signed-out visitor to ELUM Account, which sends them back signed in to `next`. With
+ * `quiet` (opening an app, not pressing Sign in), someone who is not signed in there comes straight
+ * back to this app instead of seeing Account's sign-in page.
+ */
+export function signInThroughAccount(next: string, quiet = false) {
   // Once a minute at most, so a failing handoff never loops.
   try {
     const last = Number(sessionStorage.getItem(TRIED) ?? 0);
@@ -51,7 +55,7 @@ export function signInThroughAccount(next: string) {
   } catch {
     // Without storage, still try once.
   }
-  const query = new URLSearchParams({ to: `${location.origin}/auth/handoff`, next });
+  const query = new URLSearchParams({ to: `${location.origin}/auth/handoff`, next, ...(quiet ? { quiet: '1' } : {}) });
   window.location.assign(`${ACCOUNT_URL}/continue?${query.toString()}`);
   return true;
 }

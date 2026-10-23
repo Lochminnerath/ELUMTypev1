@@ -79,8 +79,8 @@ Write needs no changes for any of this.
 
 1. Ola shares "Field notes" with `ada@type.elum.services` in Write. `share_by_email` resolves the Type address to Ada's account and emits `write.document.shared`.
 2. The platform puts the notification in Ada's bell and a delivery in the `type-inbox` consumer's queue. Write's `send-share-emails` already skips Type accounts, so no email is sent.
-3. `type-inbox-worker` claims the delivery. Its channel is `type_inbox`, so `cardFor` (`_shared/cards.ts`) makes "Ola Owner shared “Field notes” with you" with **Open in Write** linking to `https://elumwrite.netlify.app/d/<id>`, and `type_add_card` stores it, once per event.
-4. The other way: a Type message emits `type.message.received`, so Write's bell shows "Rae sent you a message", linking to `https://elumtype.netlify.app/t/<thread>` (the link uses `elum.services.url` for Type once it is set).
+3. `type-inbox-worker` claims the delivery. Its channel is `type_inbox`, so `cardFor` (`_shared/cards.ts`) makes "Ola Owner shared “Field notes” with you" with **Open in Write** linking to `https://writebyelum.netlify.app/d/<id>`, and `type_add_card` stores it, once per event.
+4. The other way: a Type message emits `type.message.received`, so Write's bell shows "Rae sent you a message", linking to `https://typebyelum.netlify.app/t/<thread>` (the link uses `elum.services.url` for Type once it is set).
 5. `elum.account.deleted` reaches the worker too; `type_forget_account` removes the mailboxes, drafts and settings. Messages other people received stay with them, signed "Former member".
 
 ## Design
