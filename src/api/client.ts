@@ -1,3 +1,4 @@
+import type { ServiceState } from '../lib/platform';
 import type {
   AppNotification,
   Attachment,
@@ -96,6 +97,11 @@ export interface TypeApi {
 
   // The ELUM bell: notifications from every service.
   readonly notifications: NotificationsApi;
+
+  /** The ELUM apps this account has added (in ELUM Store). Null when signed out, or unknown. */
+  elumApps?(): Promise<string[] | null>;
+  /** This app as the ELUM Console set it: mode, message, open incidents and flags. */
+  serviceState?(service: string): Promise<ServiceState | null>;
 }
 
 export interface NotificationsApi {
