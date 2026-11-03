@@ -161,3 +161,9 @@ a.launcher__tile:active .launcher__disc {
     animation: none;
   }
 }
+
+/* Not on this account yet: the tile opens the app's page in ELUM Store. */
+.launcher__tile[data-get] .launcher__note {
+  color: var(--action);
+  font-weight: 600;
+}

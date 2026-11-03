@@ -1,3 +1,4 @@
+import type { ServiceState } from '../../lib/platform';
 import { createClient, type RealtimeChannel, type Session as AuthSession, type SupabaseClient } from '@supabase/supabase-js';
 import { MAX_ATTACHMENTS_BYTES, type NotificationsApi, type TypeApi } from '../client';
 import { ApiError, toApiError, type RawError } from '../errors';
@@ -586,6 +587,21 @@ export class SupabaseApi implements TypeApi {
     } catch {
       return null;
     }
+  }
+
+  // ------------------------------------------------------------------- the ELUM platform
+
+  async elumApps(): Promise<string[] | null> {
+    const { data: session } = await this.sb.auth.getSession();
+    if (!session.session) return null;
+    const { data, error } = await this.sb.rpc('elum_me');
+    if (error || !data) return null;
+    return ((data as { services?: { id: string; joined: boolean }[] }).services ?? []).filter((s) => s.joined).map((s) => s.id);
+  }
+
+  async serviceState(service: string): Promise<ServiceState | null> {
+    const { data, error } = await this.sb.rpc('elum_service_state', { p_service: service });
+    return error || !data ? null : (data as ServiceState);
   }
 }
 
