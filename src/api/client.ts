@@ -32,7 +32,7 @@ import type {
  */
 export interface TypeApi {
   readonly mode: 'local' | 'remote';
-  /** The domain Type addresses live on, such as type.elum.services. */
+  /** The domain Type addresses live on, such as elum.space. */
   readonly typeDomain: string;
 
   // Accounts (one ELUM account for every service)

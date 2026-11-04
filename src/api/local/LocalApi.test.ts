@@ -31,7 +31,7 @@ describe('LocalApi', () => {
     const ada = await account(api, 'ada');
     expect(ada.canEmail).toBe(true);
     const bo = await account(api, 'bob');
-    const sent = await api.send(message(bo.id, ['ada@type.elum.services'], 'Hi Ada'));
+    const sent = await api.send(message(bo.id, ['ada@elum.space'], 'Hi Ada'));
     expect(sent.status).toBe('sent');
     expect(await api.send(message(bo.id, ['x'], 'again', { id: sent.messageId }))).toEqual(sent);
 
@@ -49,12 +49,12 @@ describe('LocalApi', () => {
     await account(api, 'ada');
     await account(api, 'cyd');
     const bo = await account(api, 'bob');
-    const sent = await api.send(message(bo.id, ['ada@type.elum.services'], 'Plan', { bcc: [{ address: 'cyd@type.elum.services' }] }));
-    expect((await api.getThread(sent.threadId)).messages[0].bcc.map((b) => b.address)).toEqual(['cyd@type.elum.services']);
+    const sent = await api.send(message(bo.id, ['ada@elum.space'], 'Plan', { bcc: [{ address: 'cyd@elum.space' }] }));
+    expect((await api.getThread(sent.threadId)).messages[0].bcc.map((b) => b.address)).toEqual(['cyd@elum.space']);
     await api.signIn({ login: 'ada', password: 'password1' });
     const seen = await api.getThread(sent.threadId);
     expect(seen.messages[0].bcc).toEqual([]);
-    expect(seen.participants.some((p) => p.address === 'cyd@type.elum.services')).toBe(false);
+    expect(seen.participants.some((p) => p.address === 'cyd@elum.space')).toBe(false);
     await api.signIn({ login: 'cyd', password: 'password1' });
     expect((await api.getThread(sent.threadId)).messages).toHaveLength(1);
   });
@@ -66,7 +66,7 @@ describe('LocalApi', () => {
     const ola = (await api.start()).mailboxes[0];
     expect(ola.canEmail).toBe(false);
     await expect(api.send(message(ola.id, ['kai@outside.example'], 'hi'))).rejects.toMatchObject({ code: 'forbidden' });
-    await expect(api.send(message(ola.id, ['ada@type.elum.services'], 'hi'))).resolves.toMatchObject({ status: 'sent' });
+    await expect(api.send(message(ola.id, ['ada@elum.space'], 'hi'))).resolves.toMatchObject({ status: 'sent' });
   });
 
   it('sends outside email and threads the reply', async () => {
@@ -92,8 +92,8 @@ describe('LocalApi', () => {
   it('answers with a vacation reply once', async () => {
     const api = fast();
     const ada = await account(api, 'ada');
-    const sent = await api.send(message(ada.id, ['rae@type.elum.services'], 'Are you around?'));
-    await api.send(message(ada.id, ['rae@type.elum.services'], 'Hello?', { threadId: sent.threadId }));
+    const sent = await api.send(message(ada.id, ['rae@elum.space'], 'Are you around?'));
+    await api.send(message(ada.id, ['rae@elum.space'], 'Hello?', { threadId: sent.threadId }));
     const auto = (await api.getThread(sent.threadId)).messages.filter((m) => m.auto);
     expect(auto).toHaveLength(1);
   });

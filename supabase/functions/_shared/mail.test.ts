@@ -20,25 +20,25 @@ describe('inbound', () => {
   const item = {
     Uuid: ['x'],
     MessageId: '<abc@outside.org>',
-    InReplyTo: '<1@type.elum.services>',
+    InReplyTo: '<1@elum.space>',
     From: { Name: 'Kai Moreno', Address: 'Kai@Outside.org' },
-    To: [{ Name: 'Rae', Address: 'rae@type.elum.services' }],
-    Cc: [{ Name: null, Address: 'fen@type.elum.services' }, { Address: 'not an address' }],
+    To: [{ Name: 'Rae', Address: 'rae@elum.space' }],
+    Cc: [{ Name: null, Address: 'fen@elum.space' }, { Address: 'not an address' }],
     Subject: 'Re: Hello',
     RawHtmlBody: '<p>Hi</p><img src="https://t.example/p.gif">',
     RawTextBody: 'Hi',
     SentAtDate: '2026-10-17T10:00:00Z',
     SpamScore: 0.4,
-    Headers: { 'Authentication-Results': 'mx; spf=pass; dkim=pass; dmarc=pass', References: '<0@x> <1@type.elum.services>' },
+    Headers: { 'Authentication-Results': 'mx; spf=pass; dkim=pass; dmarc=pass', References: '<0@x> <1@elum.space>' },
     Attachments: [{ Name: '../../etc/passwd', ContentType: 'text/plain', ContentLength: 12, DownloadToken: 'tok' }],
   };
 
   it('reads a Brevo inbound item', () => {
     const mail = fromBrevoInbound(item);
     expect(mail.from).toEqual({ address: 'kai@outside.org', name: 'Kai Moreno' });
-    expect(mail.recipients).toEqual(['rae@type.elum.services', 'fen@type.elum.services']);
+    expect(mail.recipients).toEqual(['rae@elum.space', 'fen@elum.space']);
     expect(mail.cc).toHaveLength(1);
-    expect(mail.references).toEqual(['<0@x>', '<1@type.elum.services>']);
+    expect(mail.references).toEqual(['<0@x>', '<1@elum.space>']);
     expect(mail.attachments[0].name).toBe('_.._etc_passwd');
     expect(mail.date).toBe('2026-10-17T10:00:00.000Z');
     expect(isSpam(mail.headers, mail.spamScore)).toBe(false);
@@ -82,15 +82,15 @@ describe('outbound', () => {
   const message = {
     id: 'm1',
     threadId: 't1',
-    from: { address: 'rae@type.elum.services', name: 'Rae Reed' },
-    to: [{ address: 'kai@outside.org', name: 'Kai' }, { address: 'fen@type.elum.services', name: 'Fen' }, { address: 'ola@example.org', name: 'Ola' }],
+    from: { address: 'rae@elum.space', name: 'Rae Reed' },
+    to: [{ address: 'kai@outside.org', name: 'Kai' }, { address: 'fen@elum.space', name: 'Fen' }, { address: 'ola@example.org', name: 'Ola' }],
     cc: [],
     subject: 'Hello',
     text: 'Hi <Kai>',
     html: null,
-    messageId: '<m1@type.elum.services>',
+    messageId: '<m1@elum.space>',
     inReplyTo: '<prev@outside.org>',
-    references: ['<first@type.elum.services>'],
+    references: ['<first@elum.space>'],
     auto: false,
     signature: 'Rae',
     attachments: [],
@@ -104,20 +104,20 @@ describe('outbound', () => {
     const body = outboundBody(message, (h) => h);
     expect(body.text).toBe('Hi <Kai>\n\n-- \nRae');
     expect(body.html).toContain('Hi &lt;Kai&gt;');
-    const p = brevoPayload(rows, 'type.elum.services', body, []);
+    const p = brevoPayload(rows, 'elum.space', body, []);
     // Outside recipients and Type addresses are shown; an external account's login email is not emailed.
-    expect(p.to).toEqual([{ email: 'kai@outside.org', name: 'Kai' }, { email: 'fen@type.elum.services', name: 'Fen' }]);
+    expect(p.to).toEqual([{ email: 'kai@outside.org', name: 'Kai' }, { email: 'fen@elum.space', name: 'Fen' }]);
     expect(p.bcc).toEqual([{ email: 'boss@outside.org' }]);
-    expect(p.sender).toEqual({ email: 'rae@type.elum.services', name: 'Rae Reed' });
+    expect(p.sender).toEqual({ email: 'rae@elum.space', name: 'Rae Reed' });
     expect(p.headers).toMatchObject({
-      'Message-Id': '<m1@type.elum.services>',
+      'Message-Id': '<m1@elum.space>',
       'In-Reply-To': '<prev@outside.org>',
-      References: '<first@type.elum.services> <prev@outside.org>',
+      References: '<first@elum.space> <prev@outside.org>',
     });
   });
 
   it('marks automatic replies', () => {
-    const p = brevoPayload([{ ...rows[0], message: { ...message, auto: true } }], 'type.elum.services', { html: '', text: '' }, []);
+    const p = brevoPayload([{ ...rows[0], message: { ...message, auto: true } }], 'elum.space', { html: '', text: '' }, []);
     expect((p.headers as Record<string, string>)['Auto-Submitted']).toBe('auto-replied');
   });
 
