@@ -27,7 +27,7 @@ export const ELUM_APPS: ElumApp[] = [
   { id: 'tune', name: 'Tune', note: 'Music', url: at('VITE_ELUM_TUNE_URL', 'https://tunebyelum.netlify.app'), color: '#48bfe3' },
   { id: 'code', name: 'Code', note: 'Coding', url: at('VITE_ELUM_CODE_URL', 'https://codebyelum.netlify.app'), color: '#d27fe0' },
   { id: 'capture', name: 'Capture', note: 'Photos', url: at('VITE_ELUM_CAPTURE_URL', 'https://capturebyelum.netlify.app'), color: '#5ec46f' },
-  { id: 'home', name: 'ELUM', note: 'elum.services', url: at('VITE_ELUM_HOME_URL', 'https://elum.netlify.app'), color: '#7093f8' },
+  { id: 'home', name: 'ELUM', note: 'elum.space', url: at('VITE_ELUM_HOME_URL', 'https://elum.netlify.app'), color: '#7093f8' },
 ];
 
 /** Come with every account: nothing to add. The rest are added from ELUM Store with Get. */

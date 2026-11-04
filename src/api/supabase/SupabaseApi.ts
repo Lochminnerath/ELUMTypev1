@@ -106,7 +106,7 @@ export class SupabaseApi implements TypeApi {
   private domainLookup: Promise<string> | null = null;
 
   constructor(url: string, anonKey: string, options: { typeDomain?: string; client?: SupabaseClient } = {}) {
-    this.typeDomain = options.typeDomain ?? 'type.elum.services';
+    this.typeDomain = options.typeDomain ?? 'elum.space';
     const cookieDomain = typeof location === 'undefined' ? null : usableCookieDomain(import.meta.env.VITE_ELUM_COOKIE_DOMAIN, location.hostname);
     this.sb =
       options.client ??

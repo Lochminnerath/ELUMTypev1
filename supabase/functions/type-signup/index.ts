@@ -9,7 +9,7 @@
 //   CAPTCHA_PROVIDER   turnstile or hcaptcha. With CAPTCHA_SECRET set, sign-up needs a token.
 //   CAPTCHA_SECRET     The provider's secret key.
 //   BREVO_API_KEY      For recovery codes. Without it, the code is not sent (the person can resend later).
-//   TYPE_EMAIL_FROM    Sender, for example "ELUM Type <hello@type.elum.services>".
+//   TYPE_EMAIL_FROM    Sender, for example "ELUM Type <hello@elum.space>".
 //   APP_URL            Where Type is hosted, for images in emails, for example https://typebyelum.netlify.app
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase.
 //

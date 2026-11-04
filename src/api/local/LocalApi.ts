@@ -180,7 +180,7 @@ export class LocalApi implements TypeApi {
 
   constructor(options: LocalApiOptions = {}) {
     this.storage = options.storage ?? localStorage;
-    this.typeDomain = options.typeDomain ?? 'type.elum.services';
+    this.typeDomain = options.typeDomain ?? 'elum.space';
     this.iterations = options.passwordIterations ?? DEFAULT_ITERATIONS;
     this.demo = options.demo ?? true;
     this.delay = options.simulateDelay ?? 1500;
