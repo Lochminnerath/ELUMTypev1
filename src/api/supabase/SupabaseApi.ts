@@ -1,3 +1,4 @@
+import type { ServiceState } from '../../lib/platform';
 import { createClient, type RealtimeChannel, type Session as AuthSession, type SupabaseClient } from '@supabase/supabase-js';
 import { MAX_ATTACHMENTS_BYTES, type NotificationsApi, type TypeApi } from '../client';
 import { ApiError, toApiError, type RawError } from '../errors';
@@ -30,6 +31,7 @@ import type {
 import { checkPassword, cleanName, handleProblem, isEmail, loginToEmail } from '../validation';
 import { cookieStorage, usableCookieDomain } from './cookieStorage';
 import { PENDING_ROLE, tokenRole } from '../../security/approvals';
+import { askForPasskey, PasskeyCancelled, type PasskeyRequestOptions } from '../../passkeys/passkey';
 
 /**
  * ELUM Type on the shared ELUM Supabase project.
@@ -106,7 +108,7 @@ export class SupabaseApi implements TypeApi {
   private domainLookup: Promise<string> | null = null;
 
   constructor(url: string, anonKey: string, options: { typeDomain?: string; client?: SupabaseClient } = {}) {
-    this.typeDomain = options.typeDomain ?? 'type.elum.services';
+    this.typeDomain = options.typeDomain ?? 'elum.space';
     const cookieDomain = typeof location === 'undefined' ? null : usableCookieDomain(import.meta.env.VITE_ELUM_COOKIE_DOMAIN, location.hostname);
     this.sb =
       options.client ??
@@ -140,6 +142,36 @@ export class SupabaseApi implements TypeApi {
       if (e instanceof ApiError && (e.code === 'unauthorized' || e.code === 'not_found')) return null;
       throw e;
     }
+  }
+
+  async signInWithPasskey(): Promise<Session> {
+    const fallback = 'That passkey did not work. Try again, or use your password.';
+    const call = async <T,>(body: Record<string, unknown>): Promise<T> => {
+      const { data, error } = await this.sb.functions.invoke<{ data?: T; error?: { message?: string } }>('passkey', { body });
+      if (error) {
+        let message: string | undefined;
+        try {
+          message = (await (error as { context?: Response }).context?.json())?.error?.message;
+        } catch {
+          // No message from the passkey function.
+        }
+        throw new ApiError('unauthorized', message ?? fallback);
+      }
+      if (!data?.data) throw new ApiError('unauthorized', data?.error?.message ?? fallback);
+      return data.data;
+    };
+    const start = await call<{ challengeId: string; options: PasskeyRequestOptions }>({ action: 'login-options' });
+    let response;
+    try {
+      response = await askForPasskey(start.options);
+    } catch (e) {
+      if (e instanceof PasskeyCancelled) throw e;
+      throw new ApiError('invalid', (e as Error).message || fallback);
+    }
+    const { tokenHash } = await call<{ tokenHash: string }>({ action: 'login-verify', challengeId: start.challengeId, response });
+    const { data, error } = await this.sb.auth.verifyOtp({ token_hash: tokenHash, type: 'magiclink' });
+    if (error || !data.session) throw new ApiError('unauthorized', 'That passkey did not sign you in. Try again, or use your password.');
+    return this.sessionFor(data.session);
   }
 
   async signIn(input: SignInInput): Promise<Session> {
@@ -596,6 +628,21 @@ export class SupabaseApi implements TypeApi {
     } catch {
       return null;
     }
+  }
+
+  // ------------------------------------------------------------------- the ELUM platform
+
+  async elumApps(): Promise<string[] | null> {
+    const { data: session } = await this.sb.auth.getSession();
+    if (!session.session) return null;
+    const { data, error } = await this.sb.rpc('elum_me');
+    if (error || !data) return null;
+    return ((data as { services?: { id: string; joined: boolean }[] }).services ?? []).filter((s) => s.joined).map((s) => s.id);
+  }
+
+  async serviceState(service: string): Promise<ServiceState | null> {
+    const { data, error } = await this.sb.rpc('elum_service_state', { p_service: service });
+    return error || !data ? null : (data as ServiceState);
   }
 }
 

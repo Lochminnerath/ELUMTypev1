@@ -1,3 +1,4 @@
+import type { ServiceState } from '../lib/platform';
 import type {
   AppNotification,
   Attachment,
@@ -32,12 +33,14 @@ import type {
  */
 export interface TypeApi {
   readonly mode: 'local' | 'remote';
-  /** The domain Type addresses live on, such as type.elum.services. */
+  /** The domain Type addresses live on, such as elum.space. */
   readonly typeDomain: string;
 
   // Accounts (one ELUM account for every service)
   restoreSession(): Promise<Session | null>;
   signIn(input: SignInInput): Promise<Session>;
+  /** Signs in with a passkey. Only on ELUM's own domain (elum.space), where passkeys work. */
+  signInWithPasskey?(): Promise<Session>;
   /** Type accounts get handle@typeDomain; external accounts confirm their own email first. */
   signUp(input: SignUpInput): Promise<Session>;
   signOut(): Promise<void>;
@@ -102,6 +105,11 @@ export interface TypeApi {
 
   // The ELUM bell: notifications from every service.
   readonly notifications: NotificationsApi;
+
+  /** The ELUM apps this account has added (in ELUM Store). Null when signed out, or unknown. */
+  elumApps?(): Promise<string[] | null>;
+  /** This app as the ELUM Console set it: mode, message, open incidents and flags. */
+  serviceState?(service: string): Promise<ServiceState | null>;
 }
 
 export interface NotificationsApi {
