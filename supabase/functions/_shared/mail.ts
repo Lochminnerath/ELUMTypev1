@@ -198,12 +198,28 @@ export function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 }
 
-/** The body as people wrote it, plus their signature. Personal mail, so no branded template. */
+/** Where the ELUM footer's logo and link point. */
+export const ELUM_SITE = 'https://elum.space';
+export const ELUM_FOOTER_LOGO = 'https://account.elum.space/brand/email/elum-lockup.png';
+
+/** The line every email sent from Type to the outside world ends with. */
+export const ELUM_FOOTER_TEXT = 'Sent through ELUM. Get yours today.';
+
+/**
+ * The body as people wrote it, plus their signature, then a small ELUM footer: the logo and
+ * "Sent through ELUM. Get yours today." Personal mail otherwise, so no branded template.
+ * Accessible: a language, a real alt text on the logo, readable contrast, and a plain-text twin.
+ */
 export function outboundBody(m: OutboundMessage, cleanHtml: (html: string) => string): { html: string; text: string } {
-  const text = m.signature ? `${m.text}\n\n-- \n${m.signature}` : m.text;
+  const written = m.signature ? `${m.text}\n\n-- \n${m.signature}` : m.text;
+  const text = `${written}\n\n---\n${ELUM_FOOTER_TEXT} ${ELUM_SITE}`;
   const body = m.html ? cleanHtml(m.html) : escapeHtml(m.text).replace(/\n/g, '<br>');
   const signature = m.signature ? `<p style="color:#5a6178">-- <br>${escapeHtml(m.signature).replace(/\n/g, '<br>')}</p>` : '';
-  const html = `<!doctype html><html><head><meta charset="utf-8"></head><body style="font:15px/1.6 Manrope,'Helvetica Neue',Helvetica,Arial,sans-serif;color:#141a2e">${body}${signature}</body></html>`;
+  const footer = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:32px 0 0;border-top:1px solid #e2e5ee;padding:0">
+<tr><td style="padding:14px 0 0;vertical-align:middle"><a href="${ELUM_SITE}" style="text-decoration:none"><img src="${ELUM_FOOTER_LOGO}" width="76" height="24" alt="ELUM" style="display:block;border:0"></a></td></tr>
+<tr><td style="padding:8px 0 0;font:13px/20px Manrope,'Helvetica Neue',Helvetica,Arial,sans-serif;color:#5a6178">Sent through ELUM. <a href="${ELUM_SITE}" style="color:#3b5bd6">Get yours today.</a></td></tr>
+</table>`;
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="font:15px/1.6 Manrope,'Helvetica Neue',Helvetica,Arial,sans-serif;color:#141a2e">${body}${signature}${footer}</body></html>`;
   return { html, text };
 }
 

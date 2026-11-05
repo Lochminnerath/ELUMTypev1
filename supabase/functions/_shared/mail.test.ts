@@ -103,7 +103,10 @@ describe('outbound', () => {
 
   it('builds the Brevo request', () => {
     const body = outboundBody(message, (h) => h);
-    expect(body.text).toBe('Hi <Kai>\n\n-- \nRae');
+    expect(body.text).toBe('Hi <Kai>\n\n-- \nRae\n\n---\nSent through ELUM. Get yours today. https://elum.space');
+    expect(body.html).toContain('alt="ELUM"');
+    expect(body.html).toContain('Sent through ELUM.');
+    expect(body.html).not.toMatch(/©|&copy;|copyright/i);
     expect(body.html).toContain('Hi &lt;Kai&gt;');
     const p = brevoPayload(rows, 'elum.space', body, []);
     // Outside recipients and Type addresses are shown; an external account's login email is not emailed.
