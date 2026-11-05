@@ -58,14 +58,14 @@ export function App() {
 
 function NotFound() {
   return (
-    <div className="empty-state" style={{ minHeight: '100%', justifyContent: 'center' }}>
+    <main className="empty-state" style={{ minHeight: '100%', justifyContent: 'center' }}>
       <TypeMark size={72} />
-      <h2>We could not find that page</h2>
+      <h1 className="not-found__title">We could not find that page</h1>
       <p>The link may be wrong, or the page may have moved.</p>
       <Link to="/" className="elum-btn elum-btn--primary">
         Go to your inbox
       </Link>
       <SupportLinks app="type" code="not-found" message="We could not find that page" />
-    </div>
+    </main>
   );
 }

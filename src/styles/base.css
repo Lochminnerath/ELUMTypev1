@@ -395,3 +395,29 @@ img {
     font-size: 16px !important;
   }
 }
+
+/*
+ * Room for the host's badge. On the free hosting plan, Netlify draws a "Powered by Netlify" badge
+ * in the bottom-right corner over every page. While it is there (src/lib/hostBadge.ts sets
+ * has-host-badge and --host-badge-h), the app stops short of it: full-height screens end above a
+ * strip the badge's height, and scrolling pages end with that much space, so nothing sits under it.
+ */
+:root {
+  --host-badge-h: 0px;
+}
+html.has-host-badge #root {
+  height: calc(100% - var(--host-badge-h));
+}
+html.has-host-badge #root::after {
+  content: '';
+  display: block;
+  height: var(--host-badge-h);
+}
+@media print {
+  html.has-host-badge #root {
+    height: auto;
+  }
+  html.has-host-badge #root::after {
+    display: none;
+  }
+}

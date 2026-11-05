@@ -3,6 +3,7 @@ import { WarningIcon } from './icons/ElumIcons';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { isSupportable, openSupport } from '../lib/support';
 import './Toast.css';
+import { friendly } from '../lib/friendly';
 
 /** The product id support tickets are filed under. */
 const APP_ID = 'type';
@@ -38,6 +39,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const show = useCallback<ShowToast>(
     (message, { tone = 'info', action, duration = 4500, cause, code } = {}) => {
       const id = nextId.current++;
+      // Errors never show the inside of ELUM, whatever the caller passed.
+      if (tone === 'error') message = friendly(message);
       const help =
         action ??
         (tone === 'error' && code && isSupportable(cause)

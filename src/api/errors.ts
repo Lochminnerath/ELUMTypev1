@@ -1,3 +1,4 @@
+import { friendly } from '../lib/friendly';
 export type ApiErrorCode =
   | 'unauthorized'
   | 'invalid_credentials'
@@ -36,9 +37,12 @@ export class ApiError extends Error {
   readonly status: number;
   /** Extra data, such as the current version on a conflict. */
   readonly details?: Record<string, unknown>;
+  /** The original text, for the console and support; never shown. */
+  readonly detail: string;
 
   constructor(code: ApiErrorCode, message: string, details?: Record<string, unknown>) {
-    super(message);
+    super(friendly(message, code));
+    this.detail = message;
     this.name = 'ApiError';
     this.code = code;
     this.status = STATUS[code];
@@ -53,6 +57,7 @@ export function isApiError(error: unknown, code?: ApiErrorCode): error is ApiErr
 /** A sentence that is safe to show to people. */
 export function errorMessage(error: unknown): string {
   if (error instanceof ApiError) return error.message;
+  if (error instanceof Error) return friendly(error.message);
   return 'Something went wrong. Please try again.';
 }
 
