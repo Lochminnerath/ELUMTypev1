@@ -38,6 +38,8 @@ export interface TypeApi {
   // Accounts (one ELUM account for every service)
   restoreSession(): Promise<Session | null>;
   signIn(input: SignInInput): Promise<Session>;
+  /** Signs in with a passkey. Only on ELUM's own domain (elum.space), where passkeys work. */
+  signInWithPasskey?(): Promise<Session>;
   /** Type accounts get handle@typeDomain; external accounts confirm their own email first. */
   signUp(input: SignUpInput): Promise<Session>;
   signOut(): Promise<void>;
