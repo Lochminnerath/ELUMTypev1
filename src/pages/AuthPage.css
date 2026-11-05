@@ -322,3 +322,12 @@
     padding: var(--space-4);
   }
 }
+
+/* Sign in with a passkey: under the main button, with the passkey symbol. */
+.auth__passkey {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}

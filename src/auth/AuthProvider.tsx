@@ -8,6 +8,8 @@ interface AuthContextValue {
   status: Status;
   user: User | null;
   signIn: (input: SignInInput) => Promise<User>;
+  /** Signs in with a passkey (ELUM apps on elum.space). */
+  signInWithPasskey: () => Promise<User>;
   signUp: (input: SignUpInput) => Promise<User>;
   signOut: () => Promise<void>;
   updateName: (name: string) => Promise<void>;
@@ -55,6 +57,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return session.user;
   }, []);
 
+  const signInWithPasskey = useCallback(async () => {
+    if (!api.signInWithPasskey) throw new Error('Passkeys are not available here.');
+    const session = await api.signInWithPasskey();
+    setUser(session.user);
+    setStatus('signed-in');
+    return session.user;
+  }, []);
+
   const signUp = useCallback(async (input: SignUpInput) => {
     const session = await api.signUp(input);
     setUser(session.user);
@@ -75,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await api.updateName(name));
   }, []);
 
-  const value = useMemo(() => ({ status, user, signIn, signUp, signOut, updateName }), [status, user, signIn, signUp, signOut, updateName]);
+  const value = useMemo(() => ({ status, user, signIn, signInWithPasskey, signUp, signOut, updateName }), [status, user, signIn, signInWithPasskey, signUp, signOut, updateName]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
