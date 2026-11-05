@@ -208,6 +208,23 @@ export function outboundBody(m: OutboundMessage, cleanHtml: (html: string) => st
 }
 
 /**
+ * The key Brevo uses to drop a retried send: it must be a UUID (anything longer is refused with
+ * "Idempotency key exceeds char limit"). Built from the message id and its outbox rows, so the same
+ * send always gets the same key and a different set of recipients gets another.
+ */
+export function idempotencyKey(messageId: string, outboxIds: string[]): string {
+  const input = `${messageId}:${[...outboxIds].sort().join('.')}`;
+  const part = (seed: number) => {
+    let h = seed >>> 0;
+    for (let i = 0; i < input.length; i++) h = Math.imul(h ^ input.charCodeAt(i), 0x01000193) >>> 0;
+    return h.toString(16).padStart(8, '0');
+  };
+  const hex = part(0x811c9dc5) + part(0x9e3779b9) + part(0x85ebca6b) + part(0xc2b2ae35);
+  // Shaped as a version 4, variant 1 UUID.
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-${'89ab'[parseInt(hex[16], 16) & 3]}${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+}
+
+/**
  * The Brevo transactional email body for one message and the outside recipients claimed for it.
  * Type addresses on the message are kept in To and Cc so outside people can reply to everyone;
  * their copies come back through type-inbound and are recognised by Message-ID.
@@ -233,8 +250,9 @@ export function brevoPayload(
   const refs = [...m.references, ...(m.inReplyTo && !m.references.includes(m.inReplyTo) ? [m.inReplyTo] : [])];
   if (refs.length) headers.References = refs.join(' ');
   if (m.auto) headers['Auto-Submitted'] = 'auto-replied';
-  // Brevo de-duplicates a retried request with the same key.
-  headers.idempotencyKey = `${m.id}:${rows.map((r) => r.outbox_id).join('.')}`;
+  // Brevo de-duplicates a retried request with the same key. It must stay short (Brevo refuses a
+  // long one with "Idempotency key exceeds char limit"), so the outbox rows go in as a hash.
+  headers.idempotencyKey = idempotencyKey(m.id, rows.map((r) => String(r.outbox_id)));
   return {
     sender: fmt(m.from),
     to,
