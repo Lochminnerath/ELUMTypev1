@@ -13,6 +13,7 @@ import { ThemeToggle } from '../theme/ThemeToggle';
 import { ElumLauncher } from '../components/ElumLauncher';
 import './shell.css';
 import { SupportLinks } from '../components/SupportLink';
+import { SupportChat } from '../support/SupportChat';
 
 interface RailItem {
   to: string;
@@ -181,6 +182,7 @@ export function Shell({ children }: { children: ReactNode }) {
       </main>
 
       {start && compose && <Compose key={compose.draft.id ?? 'new'} request={compose} />}
+      {start && <SupportChat />}
     </div>
   );
 }

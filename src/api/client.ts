@@ -14,6 +14,7 @@ import type {
   Session,
   SignInInput,
   SignUpInput,
+  SupportChat,
   Thread,
   ThreadSummary,
   TypePreferences,
@@ -51,6 +52,11 @@ export interface TypeApi {
   accountData?(): Promise<Record<string, unknown>>;
   /** Merges flat keys into the account's remembered values. */
   updateAccountData?(patch: Record<string, unknown>): Promise<void>;
+  /**
+   * The person's open request to ELUM Support, with the live chat ids, when both exist: Type then
+   * opens that request as a chat. Null when they have no open request or chat is off. Optional.
+   */
+  supportChat?(): Promise<SupportChat | null>;
 
   // Type
   /** Joins the Type service, makes the mailbox, returns addresses and settings. Call on every start. */

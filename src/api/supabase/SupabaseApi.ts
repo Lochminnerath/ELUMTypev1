@@ -20,6 +20,7 @@ import type {
   Session,
   SignInInput,
   SignUpInput,
+  SupportChat,
   Thread,
   ThreadSummary,
   TypePreferences,
@@ -223,6 +224,15 @@ export class SupabaseApi implements TypeApi {
     const { data, error } = await this.sb.auth.getUser();
     if (error) throw toApiError(error);
     return (data.user?.user_metadata as Record<string, unknown> | undefined) ?? {};
+  }
+
+  async supportChat(): Promise<SupportChat | null> {
+    // Quiet on purpose: without an open request, or before the chat is set up, there is nothing to show.
+    try {
+      return (await this.rpc<SupportChat | null>('type_support_chat')) ?? null;
+    } catch {
+      return null;
+    }
   }
 
   async updateAccountData(patch: Record<string, unknown>): Promise<void> {

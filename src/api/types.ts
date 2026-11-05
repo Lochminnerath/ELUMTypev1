@@ -201,3 +201,16 @@ export interface AppNotification {
 
 /** What changed, for live updates. */
 export type LiveEvent = { kind: 'inbox' } | { kind: 'message'; threadId: string } | { kind: 'card' };
+
+/** An open request to ELUM Support, and the live chat (Tawk.to) that carries the conversation. */
+export interface SupportChat {
+  property: string;
+  widget: string;
+  request: {
+    id: string;
+    createdAt: string;
+    status: 'new' | 'open';
+    /** What the request is about, as chosen on the support form, such as "Signing in". */
+    kind: string | null;
+  };
+}
