@@ -202,15 +202,32 @@ export interface AppNotification {
 /** What changed, for live updates. */
 export type LiveEvent = { kind: 'inbox' } | { kind: 'message'; threadId: string } | { kind: 'card' };
 
-/** An open request to ELUM Support, and the live chat (Tawk.to) that carries the conversation. */
-export interface SupportChat {
-  property: string;
-  widget: string;
-  request: {
-    id: string;
-    createdAt: string;
-    status: 'new' | 'open';
-    /** What the request is about, as chosen on the support form, such as "Signing in". */
-    kind: string | null;
-  };
+/** A conversation with ELUM Support, as it shows in the list. */
+export interface SupportSummary {
+  id: string;
+  title: string;
+  status: 'new' | 'open' | 'done';
+  createdAt: string;
+  lastAt: string;
+  snippet: string;
+  /** ELUM Support wrote last, and it has not been opened since. */
+  unread: boolean;
+}
+
+export interface SupportMessage {
+  id: string;
+  /** From the ELUM team; otherwise from the person. */
+  fromStaff: boolean;
+  /** The team member's first name, on ELUM Support's messages. */
+  author: string | null;
+  body: string;
+  createdAt: string;
+}
+
+export interface SupportThread {
+  id: string;
+  title: string;
+  status: 'new' | 'open' | 'done';
+  createdAt: string;
+  messages: SupportMessage[];
 }

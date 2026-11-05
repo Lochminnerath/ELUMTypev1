@@ -7,6 +7,7 @@ import { SupportLinks } from './components/SupportLink';
 import { ToastProvider } from './components/Toast';
 import { TooltipLayer } from './components/TooltipLayer';
 import { InboxPage } from './inbox/InboxPage';
+import { SupportPage } from './support/SupportPage';
 import { AuthPage } from './pages/AuthPage';
 import { HandoffPage } from './pages/HandoffPage';
 import { ContactsPage } from './pages/ContactsPage';
@@ -41,6 +42,8 @@ export function App() {
                 <Route path="/" element={<SignedIn><InboxPage /></SignedIn>} />
                 <Route path="/view/:view" element={<SignedIn><InboxPage /></SignedIn>} />
                 <Route path="/t/:threadId" element={<SignedIn><InboxPage /></SignedIn>} />
+                <Route path="/support" element={<SignedIn><SupportPage /></SignedIn>} />
+                <Route path="/support/:id" element={<SignedIn><SupportPage /></SignedIn>} />
                 <Route path="/contacts" element={<SignedIn><ContactsPage /></SignedIn>} />
                 <Route path="/settings" element={<SignedIn><SettingsPage /></SignedIn>} />
                 <Route path="*" element={<NotFound />} />

@@ -9,6 +9,8 @@ import {
   isAutomatic,
   isDisposable,
   isSpam,
+  findCode,
+  spamVerdict,
   outboundBody,
   outcome,
   parseAddressHeader,
@@ -120,6 +122,15 @@ describe('outbound', () => {
     });
   });
 
+  it('shows who it is from, with their picture or their colour', () => {
+    const plain = outboundBody(message, (h) => h);
+    expect(plain.html).toContain('>RR</div>');
+    expect(plain.html).toContain('rae@elum.space');
+    const pictured = outboundBody(message, (h) => h, 'https://cdn.example/rae.png?token=a&b');
+    expect(pictured.html).toContain('<img src="https://cdn.example/rae.png?token=a&amp;b"');
+    expect(pictured.html).not.toContain('>RR</div>');
+  });
+
   it('marks automatic replies', () => {
     const p = brevoPayload([{ ...rows[0], message: { ...message, auto: true } }], 'elum.space', { html: '', text: '' }, []);
     expect((p.headers as Record<string, string>)['Auto-Submitted']).toBe('auto-replied');
@@ -192,5 +203,29 @@ describe('idempotencyKey', () => {
   it('is the same for the same rows, in any order, and differs for other rows', () => {
     expect(idempotencyKey('m', ['b', 'a'])).toBe(idempotencyKey('m', ['a', 'b']));
     expect(idempotencyKey('m', ['a'])).not.toBe(idempotencyKey('m', ['b']));
+  });
+});
+
+describe('spam rules', () => {
+  const base = { headers: {}, spamScore: null, from: { address: 'kai@outside.org', name: 'Kai' }, subject: 'Proofs', text: 'Here are the proofs.', attachments: [] };
+  it('lets ordinary mail through', () => {
+    expect(spamVerdict(base, '<p>Here are the proofs.</p>')).toBe(false);
+  });
+  it('always stops forged mail, even with a code', () => {
+    expect(spamVerdict({ ...base, headers: { 'Authentication-Results': 'mx; dmarc=fail' }, subject: 'Your code', text: 'Your code is 482913' }, null)).toBe(true);
+  });
+  it('never stops a sign-in code', () => {
+    expect(spamVerdict({ ...base, spamScore: 9, subject: '482913 is your verification code', text: 'Use it to sign in.' }, null)).toBe(false);
+    expect(findCode('Confirm your email', 'Your code: 482 913')).toBe('482913');
+  });
+  it('adds up the signs of spam', () => {
+    expect(spamVerdict({ ...base, subject: 'YOU HAVE WON A PRIZE TODAY!!!', text: 'Claim your prize with a gift card.' }, null)).toBe(true);
+    expect(spamVerdict({ ...base, attachments: [{ name: 'invoice.pdf.exe', mime: 'application/octet-stream', bytes: 10 }] }, null)).toBe(true);
+    expect(spamVerdict({ ...base, from: { address: 'x@bad.example', name: 'support@yourbank.com' }, headers: { 'Reply-To': 'y@other.example' }, text: 'Your account will be suspended.' }, null)).toBe(true);
+  });
+  it('catches a link that shows one address and goes to another', () => {
+    const html = '<a href="https://evil.example/login">https://yourbank.com/login</a>';
+    expect(spamVerdict({ ...base, text: 'Your account will be suspended.' }, html)).toBe(true);
+    expect(spamVerdict(base, '<a href="https://outside.org/proofs">outside.org/proofs</a>')).toBe(false);
   });
 });

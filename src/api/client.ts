@@ -15,7 +15,8 @@ import type {
   Session,
   SignInInput,
   SignUpInput,
-  SupportChat,
+  SupportSummary,
+  SupportThread,
   Thread,
   ThreadSummary,
   TypePreferences,
@@ -55,11 +56,10 @@ export interface TypeApi {
   accountData?(): Promise<Record<string, unknown>>;
   /** Merges flat keys into the account's remembered values. */
   updateAccountData?(patch: Record<string, unknown>): Promise<void>;
-  /**
-   * The person's open request to ELUM Support, with the live chat ids, when both exist: Type then
-   * opens that request as a chat. Null when they have no open request or chat is off. Optional.
-   */
-  supportChat?(): Promise<SupportChat | null>;
+  /** Conversations with ELUM Support, on ELUM's own network (no outside chat service). Optional. */
+  support?: SupportApi;
+  /** Profile pictures of ELUM addresses, as their owners' privacy allows. Optional. */
+  pictures?(addresses: string[]): Promise<Record<string, string | null>>;
 
   // Type
   /** Joins the Type service, makes the mailbox, returns addresses and settings. Call on every start. */
@@ -110,6 +110,15 @@ export interface TypeApi {
   elumApps?(): Promise<string[] | null>;
   /** This app as the ELUM Console set it: mode, message, open incidents and flags. */
   serviceState?(service: string): Promise<ServiceState | null>;
+}
+
+export interface SupportApi {
+  list(): Promise<SupportSummary[]>;
+  /** Opening a conversation marks ELUM Support's messages in it as read. */
+  get(id: string): Promise<SupportThread>;
+  send(id: string, body: string): Promise<SupportThread>;
+  /** Starts a conversation. All it needs is a title. */
+  start(title: string): Promise<SupportThread>;
 }
 
 export interface NotificationsApi {

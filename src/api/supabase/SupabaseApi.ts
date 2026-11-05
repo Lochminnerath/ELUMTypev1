@@ -1,6 +1,6 @@
 import type { ServiceState } from '../../lib/platform';
 import { createClient, type RealtimeChannel, type Session as AuthSession, type SupabaseClient } from '@supabase/supabase-js';
-import { MAX_ATTACHMENTS_BYTES, type NotificationsApi, type TypeApi } from '../client';
+import { MAX_ATTACHMENTS_BYTES, type NotificationsApi, type SupportApi, type TypeApi } from '../client';
 import { ApiError, toApiError, type RawError } from '../errors';
 import type {
   Address,
@@ -21,7 +21,8 @@ import type {
   Session,
   SignInInput,
   SignUpInput,
-  SupportChat,
+  SupportSummary,
+  SupportThread,
   Thread,
   ThreadSummary,
   TypePreferences,
@@ -258,13 +259,28 @@ export class SupabaseApi implements TypeApi {
     return (data.user?.user_metadata as Record<string, unknown> | undefined) ?? {};
   }
 
-  async supportChat(): Promise<SupportChat | null> {
-    // Quiet on purpose: without an open request, or before the chat is set up, there is nothing to show.
+  readonly support: SupportApi = {
+    list: async () => (await this.rpc<SupportSummary[] | null>('type_support_list')) ?? [],
+    get: (id) => this.rpc<SupportThread>('type_support_thread', { p_id: id }),
+    send: (id, body) => this.rpc<SupportThread>('type_support_send', { p_id: id, p_body: body }),
+    start: (title) => this.rpc<SupportThread>('type_support_start', { p_title: title }),
+  };
+
+  /** Pictures for ELUM addresses, as signed links. Addresses with no picture (or a private one) map to null. */
+  async pictures(addresses: string[]): Promise<Record<string, string | null>> {
+    const out: Record<string, string | null> = Object.fromEntries(addresses.map((a) => [a.toLowerCase(), null]));
+    if (!addresses.length) return out;
     try {
-      return (await this.rpc<SupportChat | null>('type_support_chat')) ?? null;
+      const rows = (await this.rpc<{ address: string; picture: string }[] | null>('type_pictures', { p_addresses: addresses })) ?? [];
+      if (!rows.length) return out;
+      const signed = await this.sb.storage.from('avatars').createSignedUrls(rows.map((r) => r.picture), 60 * 60);
+      rows.forEach((r, i) => {
+        out[r.address] = signed.data?.[i]?.signedUrl ?? null;
+      });
     } catch {
-      return null;
+      // Before the database has type_pictures, everyone simply shows their colour.
     }
+    return out;
   }
 
   async updateAccountData(patch: Record<string, unknown>): Promise<void> {

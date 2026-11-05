@@ -430,3 +430,10 @@
 .swipe .thread-row[data-dragging] {
   transition: none;
 }
+
+/* The sender's picture, with how the conversation reached you in its corner. */
+.thread-row__avatar {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}

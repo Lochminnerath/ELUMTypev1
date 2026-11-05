@@ -1,4 +1,4 @@
-import { CircleUser, Megaphone, Monitor, Moon, Sun } from 'lucide-react';
+import { CircleUser, LifeBuoy, Megaphone, Monitor, Moon, Sun } from 'lucide-react';
 import { RenameIcon } from './icons/ElumIcons';
 import { SignOutIcon } from './icons/ElumIcons';
 import { useState } from 'react';
@@ -11,6 +11,7 @@ import { Avatar } from './Avatar';
 import { Dialog } from './Dialog';
 import { Menu } from './Menu';
 import { ACCOUNT_URL, accountsSignIn, openAccount } from '../lib/elum';
+import { openStartSupport } from '../support/supportStart';
 
 const ICON = { size: 16, strokeWidth: 1.75 };
 
@@ -88,6 +89,9 @@ export function UserMenu() {
               ]
             : []),
           { label: "What's new", icon: <Megaphone {...ICON} />, onSelect: openWhatsNew },
+          ...(api.support
+            ? [{ label: 'Message ELUM Support', hint: 'The ELUM team answers here in Type', icon: <LifeBuoy {...ICON} />, onSelect: openStartSupport }]
+            : []),
           'separator',
           {
             label: 'Sign out',

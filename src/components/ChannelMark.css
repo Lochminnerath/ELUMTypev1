@@ -1,0 +1,23 @@
+.channel-mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+.channel-mark[data-kind='elum'] {
+  color: var(--type-deep);
+}
+.channel-mark[data-kind='email'] {
+  color: var(--ink-muted);
+}
+/* On a picture: a small disc in the corner, so it reads on any photo. */
+.channel-mark--badge {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--hairline);
+}

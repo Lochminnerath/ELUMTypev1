@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { Contact, Inbox, Mail, Search, Settings, X } from 'lucide-react';
+import { Contact, Inbox, LifeBuoy, Mail, Search, Settings, X } from 'lucide-react';
 import { ArchiveIcon } from '../components/icons/ElumIcons';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate, useSearchParams } from 'react-router';
@@ -13,7 +13,9 @@ import { ThemeToggle } from '../theme/ThemeToggle';
 import { ElumLauncher } from '../components/ElumLauncher';
 import './shell.css';
 import { SupportLinks } from '../components/SupportLink';
-import { SupportChat } from '../support/SupportChat';
+import { StartSupport } from '../support/StartSupport';
+import { useSupportList } from '../support/useSupport';
+import { api } from '../api';
 
 interface RailItem {
   to: string;
@@ -30,8 +32,9 @@ export function Shell({ children }: { children: ReactNode }) {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
+  const supportUnread = useSupportList().filter((s) => s.unread).length;
   const query = params.get('q') ?? '';
-  const onList = !location.pathname.startsWith('/contacts') && !location.pathname.startsWith('/settings');
+  const onList = !location.pathname.startsWith('/contacts') && !location.pathname.startsWith('/settings') && !location.pathname.startsWith('/support');
   const section = onList ? 'inbox' : location.pathname.split('/')[1];
 
   // "/" focuses search, like most mail apps.
@@ -52,6 +55,7 @@ export function Shell({ children }: { children: ReactNode }) {
     { to: '/view/unread', label: 'Unread', icon: Mail },
     { to: '/view/archive', label: 'Archived', icon: ArchiveIcon },
     { to: '/contacts', label: 'Contacts', icon: Contact },
+    ...(api.support ? [{ to: '/support', label: 'ELUM Support', icon: LifeBuoy, badge: supportUnread, match: (p: string) => p.startsWith('/support') }] : []),
   ];
 
   if (startError) {
@@ -182,7 +186,7 @@ export function Shell({ children }: { children: ReactNode }) {
       </main>
 
       {start && compose && <Compose key={compose.draft.id ?? 'new'} request={compose} />}
-      {start && <SupportChat />}
+      {start && <StartSupport />}
     </div>
   );
 }

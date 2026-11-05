@@ -1,6 +1,7 @@
-import { MAX_ATTACHMENTS_BYTES, MAX_RECIPIENTS, type NotificationsApi, type TypeApi } from '../client';
+import { MAX_ATTACHMENTS_BYTES, MAX_RECIPIENTS, type NotificationsApi, type SupportApi, type TypeApi } from '../client';
 import { ApiError } from '../errors';
 import type {
+  SupportThread,
   Address,
   AppNotification,
   Attachment,
@@ -658,6 +659,72 @@ export class LocalApi implements TypeApi {
     return () => this.listeners.delete(onChange);
   }
 
+  /** ELUM Support in the preview: kept in this browser, and the team's answer is a friendly placeholder. */
+  readonly support: SupportApi = {
+    list: async () => {
+      const all = readSupport(this.me(this.read()).id);
+      return all
+        .map((t) => {
+          const last = t.messages[t.messages.length - 1];
+          return {
+            id: t.id,
+            title: t.title,
+            status: t.status,
+            createdAt: t.createdAt,
+            lastAt: last?.createdAt ?? t.createdAt,
+            snippet: (last?.body ?? '').slice(0, 140),
+            unread: !!last?.fromStaff && !t.seen,
+          };
+        })
+        .sort((a, b) => Number(b.status !== 'done') - Number(a.status !== 'done') || b.lastAt.localeCompare(a.lastAt));
+    },
+    get: async (id) => {
+      const me = this.me(this.read()).id;
+      const all = readSupport(me);
+      const t = all.find((x) => x.id === id);
+      if (!t) throw new ApiError('not_found', 'That conversation is not there.');
+      t.seen = true;
+      writeSupport(me, all);
+      return stripSeen(t);
+    },
+    send: async (id, body) => {
+      const me = this.me(this.read()).id;
+      const all = readSupport(me);
+      const t = all.find((x) => x.id === id);
+      if (!t) throw new ApiError('not_found', 'That conversation is not there.');
+      const text = body.trim();
+      if (!text || text.length > 5000) throw new ApiError('invalid', 'Write a message of up to 5000 characters.');
+      const now = new Date().toISOString();
+      const first = !t.messages.length;
+      t.messages.push({ id: crypto.randomUUID(), fromStaff: false, author: null, body: text, createdAt: now });
+      if (first) {
+        t.messages.push({
+          id: crypto.randomUUID(),
+          fromStaff: true,
+          author: 'Sam',
+          body: 'Thank you for writing to ELUM Support. This is a preview, so nobody will answer here, but in ELUM a member of the team replies in this conversation.',
+          createdAt: new Date(Date.now() + 1000).toISOString(),
+        });
+      }
+      if (t.status === 'done') t.status = 'open';
+      t.seen = true;
+      writeSupport(me, all);
+      return stripSeen(t);
+    },
+    start: async (title) => {
+      const me = this.me(this.read()).id;
+      const clean = title.replace(/\s+/g, ' ').trim().slice(0, 120);
+      if (clean.length < 3) throw new ApiError('invalid', 'Give your conversation a short title.');
+      const t = { id: crypto.randomUUID(), title: clean, status: 'new' as const, createdAt: new Date().toISOString(), messages: [], seen: true };
+      writeSupport(me, [t, ...readSupport(me)]);
+      return stripSeen(t);
+    },
+  };
+
+  async pictures(addresses: string[]): Promise<Record<string, string | null>> {
+    return Object.fromEntries(addresses.map((a) => [a.toLowerCase(), null]));
+  }
+
   readonly notifications: NotificationsApi = {
     list: async ({ unreadOnly = false, limit = 30 } = {}) => {
       const db = this.read();
@@ -1048,3 +1115,26 @@ function readAsDataUrl(file: Blob): Promise<string> {
 }
 
 export const LOCAL_KEYS = { data: KEY, session: SESSION_KEY };
+
+type StoredSupport = SupportThread & { seen: boolean };
+const SUPPORT_KEY = 'elum.type.preview.support:';
+
+function readSupport(me: string): StoredSupport[] {
+  try {
+    return JSON.parse(localStorage.getItem(SUPPORT_KEY + me) ?? '[]') as StoredSupport[];
+  } catch {
+    return [];
+  }
+}
+
+function writeSupport(me: string, all: StoredSupport[]) {
+  try {
+    localStorage.setItem(SUPPORT_KEY + me, JSON.stringify(all));
+  } catch {
+    // A full or blocked storage only loses the preview's conversations.
+  }
+}
+
+function stripSeen({ seen: _seen, ...t }: StoredSupport): SupportThread {
+  return { ...t, messages: [...t.messages] };
+}
