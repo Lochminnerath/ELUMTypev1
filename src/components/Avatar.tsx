@@ -10,9 +10,32 @@ export function initials(name: string): string {
  * The person's profile picture (from ELUM Account), or a circle in their colour with their
  * initials. People outside ELUM have no colour, so they get a quiet outlined circle instead.
  */
-export function Avatar({ user, size = 32, title }: { user: { name: string; color?: string | null; pictureUrl?: string | null }; size?: number; title?: string }) {
+export function Avatar({
+  user,
+  size = 32,
+  title,
+  onPictureError,
+}: {
+  user: { name: string; color?: string | null; pictureUrl?: string | null };
+  size?: number;
+  title?: string;
+  /** When the picture cannot be loaded, so the caller can show the colour instead. */
+  onPictureError?: () => void;
+}) {
   if (user.pictureUrl) {
-    return <img className="avatar avatar--picture" src={user.pictureUrl} width={size} height={size} alt={title ?? ''} title={title} style={{ width: size, height: size }} />;
+    return (
+      <img
+        className="avatar avatar--picture"
+        src={user.pictureUrl}
+        width={size}
+        height={size}
+        alt={title ?? ''}
+        title={title}
+        style={{ width: size, height: size }}
+        referrerPolicy="no-referrer"
+        onError={onPictureError}
+      />
+    );
   }
   const outside = !user.color;
   return (

@@ -5,7 +5,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { api, errorMessage, type Address, type Attachment, type Folder, type Message, type Thread } from '../api';
 import { displayName, formatAddress, forwardSubject, replySubject } from '../api/validation';
-import { Avatar } from '../components/Avatar';
+import { PersonAvatar } from '../components/PersonAvatar';
+import { ChannelMark } from '../components/ChannelMark';
+import { CodeChip } from './CodeChip';
 import { TypeMark } from '../components/Brand';
 import { Loader } from '../components/Loader';
 import { Menu } from '../components/Menu';
@@ -271,10 +273,14 @@ function Bubble({ message: m, grouped, showMeta, onForward }: { message: Message
   return (
     <div className="bubble-row" data-mine={m.mine || undefined} data-grouped={grouped || undefined}>
       {!m.mine && (
-        <span className="bubble-row__avatar">{!grouped && <Avatar user={{ name: displayName(m.from), color: m.from.color ?? null }} size={32} />}</span>
+        <span className="bubble-row__avatar">{!grouped && <PersonAvatar person={m.from} size={32} />}</span>
       )}
       <div className="bubble-row__body">
-        {!m.mine && !grouped && <span className="bubble__author">{displayName(m.from)}</span>}
+        {!m.mine && !grouped && (
+          <span className="bubble__author">
+            {displayName(m.from)} <ChannelMark kind="elum" size={12} />
+          </span>
+        )}
         <div className="bubble" data-auto={m.auto || undefined}>
           {m.auto && <span className="bubble__auto">Automatic reply</span>}
           {m.subject && !grouped && <strong className="bubble__subject">{m.subject}</strong>}
@@ -323,7 +329,7 @@ function EmailCard({
   if (collapsed) {
     return (
       <button type="button" className="email-card email-card--collapsed" onClick={() => setCollapsed(false)}>
-        <Avatar user={{ name: displayName(m.from), color: m.from.isElum ? m.from.color : null }} size={32} />
+        <PersonAvatar person={m.from} size={32} />
         <span className="email-card__from">{displayName(m.from)}</span>
         <span className="email-card__peek">{m.text.slice(0, 120)}</span>
         <time className="email-card__time" dateTime={m.createdAt}>
@@ -336,11 +342,12 @@ function EmailCard({
   return (
     <article className="email-card" aria-label={`From ${displayName(m.from)}`}>
       <header className="email-card__head">
-        <Avatar user={{ name: displayName(m.from), color: m.from.isElum ? m.from.color : null }} size={40} />
+        <PersonAvatar person={m.from} size={40} />
         <div className="email-card__who">
           <span className="email-card__from">
             {displayName(m.from)}
             {!m.from.isElum && <span className="email-card__address">{m.from.address}</span>}
+            <ChannelMark kind={m.from.isElum ? 'elum' : 'email'} size={14} />
           </span>
           <span className="email-card__to">
             to {recipients.length ? recipients.map((r) => (r.address === m.from.address ? 'themselves' : displayName(r))).join(', ') : 'you'}
@@ -429,6 +436,7 @@ function EmailCard({
 
       <div className="email-card__body">
         {m.auto && <p className="bubble__auto">Automatic reply</p>}
+        {!m.mine && <CodeChip subject={m.subject} text={m.text} />}
         {m.html ? (
           <EmailFrame html={m.html} allowImages={images} title={`Message from ${displayName(m.from)}`} onBlocked={setBlocked} />
         ) : (
