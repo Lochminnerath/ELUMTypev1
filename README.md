@@ -1,6 +1,6 @@
 # ELUM Type
 
-Messages and email in one calm inbox. Built by people. Runs without AI.
+Messages and email in one calm inbox. Made by you. Runs without AI.
 
 Type is ELUM's messaging app. It sits on the same ELUM platform as [Write](https://github.com/Lochminnerath/ELUMWritev1): one account, one sign-in, one notification bell, one design system.
 
