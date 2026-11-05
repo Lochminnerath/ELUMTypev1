@@ -126,3 +126,11 @@
 .notice__service[data-service='inquire'] {
   color: var(--inquire-deep);
 }
+
+/* The notification sound switch sits with the header's actions, on the right. */
+.notifications__head .sound-toggle {
+  margin-left: auto;
+}
+.notifications__head .sound-toggle[aria-pressed='false'] {
+  opacity: 0.7;
+}
