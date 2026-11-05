@@ -76,7 +76,7 @@
   background: var(--surface-glass);
   color: var(--ink);
 }
-.chip[aria-pressed='true'] {
+.chip[aria-current='page'] {
   background: var(--accent-mist);
   border-color: var(--accent);
   color: var(--accent-deep);

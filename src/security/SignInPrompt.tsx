@@ -4,6 +4,7 @@ import { Dialog } from '../components/Dialog';
 import { useToast } from '../components/Toast';
 import { answerSignIn, pickRequest, signInRequests, type SignInRequest } from './approvals';
 import './Approvals.css';
+import { friendly } from '../lib/friendly';
 
 const POLL_MS = 15_000;
 
@@ -55,7 +56,7 @@ export function SignInPrompt({ sb, securityUrl }: { sb: SupabaseClient; security
           duration: 10000,
         });
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'That sign-in is no longer waiting.', { tone: 'error' });
+      toast(friendly(e instanceof Error ? e.message : 'That sign-in is no longer waiting.'), { tone: 'error' });
     } finally {
       setBusy(false);
       setRequest(null);
