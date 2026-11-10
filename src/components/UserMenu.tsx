@@ -1,10 +1,11 @@
-import { CircleUser, LifeBuoy, Megaphone, Monitor, Moon, Sun } from 'lucide-react';
+import { CircleUser, LifeBuoy, Megaphone, Monitor, Moon, Scale, Sun } from 'lucide-react';
 import { RenameIcon } from './icons/ElumIcons';
 import { SignOutIcon } from './icons/ElumIcons';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { api, errorMessage } from '../api';
 import { useAuth, useUser } from '../auth/AuthProvider';
+import { LEGAL_PAGES, openLegal } from '../lib/legal';
 import { useTheme } from '../theme/ThemeProvider';
 import { openWhatsNew } from '../whatsnew/WhatsNew';
 import { Avatar } from './Avatar';
@@ -89,6 +90,12 @@ export function UserMenu() {
               ]
             : []),
           { label: "What's new", icon: <Megaphone {...ICON} />, onSelect: openWhatsNew },
+          {
+            label: 'Terms and policies',
+            hint: 'Privacy, ads, Do Not Sell and more',
+            icon: <Scale {...ICON} />,
+            items: LEGAL_PAGES.map((p) => ({ label: p.label, onSelect: () => openLegal(p.path, 'type') })),
+          },
           ...(api.support
             ? [{ label: 'Message ELUM Support', hint: 'The ELUM team answers here in Type', icon: <LifeBuoy {...ICON} />, onSelect: openStartSupport }]
             : []),
