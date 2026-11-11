@@ -205,3 +205,12 @@
     animation: none;
   }
 }
+
+.approval-prompt__blocked {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent, #3b5bd6) 8%, var(--surface));
+  font-size: 14px;
+  line-height: 1.5;
+}

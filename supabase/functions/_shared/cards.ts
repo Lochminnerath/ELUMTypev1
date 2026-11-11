@@ -24,7 +24,16 @@ export interface Card {
   actionUrl: string | null;
 }
 
-const NAMES: Record<string, string> = { write: 'Write', browse: 'Browse', make: 'Make', store: 'Store' };
+const NAMES: Record<string, string> = {
+  write: 'Write',
+  browse: 'Browse',
+  make: 'Make',
+  store: 'Store',
+  inquire: 'Inquire',
+  capture: 'Capture',
+  code: 'Code',
+  tune: 'Tune',
+};
 
 /**
  * The card for an event, or null when it does not belong in a Type inbox: the recipient is not a

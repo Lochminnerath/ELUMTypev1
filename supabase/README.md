@@ -62,6 +62,7 @@ supabase secrets set BREVO_API_KEY=... CRON_SECRET=<long random> INBOUND_SECRET=
 | `type-send` | Sends queued outside email through Brevo | pg_cron every minute, and the app right after sending |
 | `type-inbound` | Stores email for Type addresses | Brevo inbound parsing: `https://<ref>.functions.supabase.co/type-inbound?token=<INBOUND_SECRET>` |
 | `type-inbox-worker` | Turns platform events into inbox cards; cleans up deleted accounts | pg_cron every minute |
+| `elum-share-mail` | Emails people outside Type when something is shared with them in Make, Capture, Code, Inquire or Tune | pg_cron every minute |
 
 ## 4. Schedules
 
@@ -74,6 +75,11 @@ select cron.schedule('type-send', '* * * * *', $$
 $$);
 select cron.schedule('type-inbox-worker', '* * * * *', $$
   select net.http_post(url := 'https://<ref>.functions.supabase.co/type-inbox-worker',
+                       headers := jsonb_build_object('Authorization', 'Bearer <CRON_SECRET>'))
+$$);
+-- Share emails for people outside Type (secrets: BREVO_API_KEY, SHARE_EMAIL_FROM, CRON_SECRET).
+select cron.schedule('elum-share-mail', '* * * * *', $$
+  select net.http_post(url := 'https://<ref>.functions.supabase.co/elum-share-mail',
                        headers := jsonb_build_object('Authorization', 'Bearer <CRON_SECRET>'))
 $$);
 ```

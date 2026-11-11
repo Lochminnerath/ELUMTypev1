@@ -1,6 +1,6 @@
 import type { ServiceState } from '../../lib/platform';
 import { createClient, type RealtimeChannel, type Session as AuthSession, type SupabaseClient } from '@supabase/supabase-js';
-import { MAX_ATTACHMENTS_BYTES, type NotificationsApi, type SupportApi, type TypeApi } from '../client';
+import { MAX_ATTACHMENTS_BYTES, type NotificationsApi, type ShareableItem, type ShareRole, type SupportApi, type TypeApi } from '../client';
 import { ApiError, toApiError, type RawError } from '../errors';
 import type {
   Address,
@@ -107,6 +107,30 @@ export class SupabaseApi implements TypeApi {
   private readonly signedUrls = new Map<string, { url: string; expires: number }>();
   private mailboxIds: string[] = [];
   private domainLookup: Promise<string> | null = null;
+
+  async shareables(query?: string): Promise<ShareableItem[]> {
+    const { data, error } = await this.sb.rpc('type_shareable_items', { p_query: query?.trim() || null, p_limit: 40 });
+    if (error) {
+      if (error.code === 'PGRST202' || error.code === '42883') return [];
+      throw toApiError(error);
+    }
+    return (data as ShareableItem[] | null) ?? [];
+  }
+
+  async shareItem(item: ShareableItem, email: string, role: ShareRole): Promise<void> {
+    // Each app's own share function: it checks that you own the thing and who may see it.
+    const calls: Record<ShareableItem['app'], [string, Record<string, unknown>]> = {
+      write: ['share_by_email', { p_doc: item.id, p_email: email, p_role: role }],
+      make: ['make_share', { p_id: item.id, p_email: email, p_role: role }],
+      inquire: ['inquire_share', { p_id: item.id, p_email: email, p_role: role }],
+      capture: ['capture_album_share', { p_id: item.id, p_email: email, p_role: role === 'editor' ? 'contributor' : 'viewer' }],
+      code: ['code_share', { p_id: item.id, p_email: email, p_role: role }],
+      tune: ['tune_playlist_share', { p_id: item.id, p_email: email }],
+    };
+    const [name, args] = calls[item.app];
+    const { error } = await this.sb.rpc(name, args);
+    if (error) throw toApiError(error);
+  }
 
   constructor(url: string, anonKey: string, options: { typeDomain?: string; client?: SupabaseClient } = {}) {
     this.typeDomain = options.typeDomain ?? 'elum.space';

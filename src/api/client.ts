@@ -32,6 +32,18 @@ import type {
  * Every call except the auth ones acts as the signed-in person and fails with
  * `ApiError('unauthorized')` when there is no valid session.
  */
+export type ShareRole = 'viewer' | 'editor';
+
+/** Something you own in another ELUM app. */
+export interface ShareableItem {
+  app: 'write' | 'make' | 'inquire' | 'capture' | 'code' | 'tune';
+  id: string;
+  title: string;
+  updatedAt: string;
+  /** The path inside the app, such as /d/<id>. */
+  path: string;
+}
+
 export interface TypeApi {
   readonly mode: 'local' | 'remote';
   /** The domain Type addresses live on, such as elum.space. */
@@ -58,6 +70,10 @@ export interface TypeApi {
   updateAccountData?(patch: Record<string, unknown>): Promise<void>;
   /** Conversations with ELUM Support, on ELUM's own network (no outside chat service). Optional. */
   support?: SupportApi;
+  /** What you own across ELUM, for Share from ELUM in the composer. Optional. */
+  shareables?(query?: string): Promise<ShareableItem[]>;
+  /** Shares one of your things with someone, through that app's own share function. */
+  shareItem?(item: ShareableItem, email: string, role: ShareRole): Promise<void>;
   /** Profile pictures of ELUM addresses, as their owners' privacy allows. Optional. */
   pictures?(addresses: string[]): Promise<Record<string, string | null>>;
 

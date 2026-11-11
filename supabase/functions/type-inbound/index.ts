@@ -14,6 +14,7 @@
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import sanitizeHtml from 'npm:sanitize-html@2';
 import { fail, hasSecret, ok } from '../_shared/http.ts';
+import { guardHtml, guardText } from '../_shared/signInGuard.ts';
 import {
   fromBrevoInbound,
   hasRemoteImages,
@@ -73,7 +74,9 @@ Deno.serve(async (req) => {
 
 async function store(db: SupabaseClient, mail: InboundEmail) {
   const id = crypto.randomUUID();
-  const html = mail.html ? cleanReceivedHtml(mail.html) : null;
+  // Sign-in and approval links never reach a Type mailbox in working order (_shared/signInGuard.ts).
+  const html = mail.html ? guardHtml(cleanReceivedHtml(mail.html)).html : null;
+  mail = { ...mail, text: mail.text ? guardText(mail.text).text : mail.text };
   const attachments: { path: string; name: string; mime: string; bytes: number }[] = [];
   let total = 0;
   for (const a of mail.attachments) {

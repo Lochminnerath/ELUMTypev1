@@ -72,7 +72,7 @@ export async function askForPasskey(options: PasskeyRequestOptions): Promise<Pas
         challenge: fromBase64url(options.challenge),
         rpId: options.rpId,
         timeout: options.timeout,
-        userVerification: options.userVerification ?? 'preferred',
+        userVerification: options.userVerification ?? 'required',
         allowCredentials: (options.allowCredentials ?? []).map((c) => ({ id: fromBase64url(c.id), type: c.type, transports: c.transports })),
       },
     });
