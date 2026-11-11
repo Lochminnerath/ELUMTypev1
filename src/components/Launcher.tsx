@@ -20,6 +20,21 @@ interface LauncherProps {
   onOpen(url: string): void;
 }
 
+/**
+ * The launcher's own symbol, drawn from the ELUM mark: three rings and one solid disc in this app's
+ * colour, set out like the apps in the window. The rings ease apart a little on hover.
+ */
+function LauncherIcon({ colour }: { colour?: string }) {
+  return (
+    <svg className="launcher__icon" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+      <circle className="launcher__icon-a" cx="5.6" cy="5.6" r="3.3" fill="none" stroke="currentColor" strokeWidth="1.7" />
+      <circle className="launcher__icon-b" cx="14.4" cy="5.6" r="3.3" fill={colour ?? 'currentColor'} />
+      <circle className="launcher__icon-c" cx="5.6" cy="14.4" r="3.3" fill="none" stroke="currentColor" strokeWidth="1.7" />
+      <circle className="launcher__icon-d" cx="14.4" cy="14.4" r="3.3" fill="none" stroke="currentColor" strokeWidth="1.7" />
+    </svg>
+  );
+}
+
 export function Launcher({ apps, current, added, onOpen }: LauncherProps) {
   // Arrow keys move between tiles, three to a row.
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -39,9 +54,7 @@ export function Launcher({ apps, current, added, onOpen }: LauncherProps) {
       className="launcher"
       trigger={(props) => (
         <button type="button" className="icon-btn icon-btn--round launcher__trigger" aria-label="ELUM apps" data-tip="ELUM apps" {...props}>
-          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-            {[4, 10, 16].flatMap((y) => [4, 10, 16].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="2.1" fill="currentColor" />))}
-          </svg>
+          <LauncherIcon colour={apps.find((a) => a.id === current)?.color} />
         </button>
       )}
     >
@@ -53,7 +66,7 @@ export function Launcher({ apps, current, added, onOpen }: LauncherProps) {
             <span className="launcher__tagline">Made by you. Runs without AI.</span>
           </div>
           <ul className="launcher__grid">
-            {apps.map((app, i) => {
+            {apps.filter((app) => app.id !== 'home').map((app, i) => {
               const here = app.id === current;
               const get = !here && !!added && !ALWAYS_THERE.includes(app.id) && !added.includes(app.id);
               const url = get ? storePage(app.id) : app.url;

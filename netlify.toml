@@ -18,4 +18,5 @@
 [[headers]]
   for = "/*"
   [headers.values]
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
     Content-Security-Policy = "frame-ancestors 'self' https://browsebyelum.netlify.app https://elumbrowse.netlify.app https://elum.space https://*.elum.space"
