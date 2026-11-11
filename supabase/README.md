@@ -11,7 +11,7 @@ to `20261020000000_elum_platform.sql`. Then, in order:
 
 1. `platform-changes/20261020120000_elum_platform_for_type.sql`: a platform fix Type sign-ups need
    (see docs/TYPE.md). It belongs in the platform migrations; until it moves, run it from here.
-2. `platform-changes/20261021120000_elum_services_domain.sql`: the family domain is elum.services.
+2. `platform-changes/20261021120000_elum_services_domain.sql`: an earlier domain step, kept for order.
 3. `migrations/20261021000000_type_schema.sql`: the `type` schema. It also opens Type as a beta
    service and adds the `type-attachments` bucket.
 4. ELUMAccountsV1's `migrations/20261022000000_elum_accounts.sql` (pictures, circles, privacy), then
@@ -19,6 +19,9 @@ to `20261020000000_elum_platform.sql`. Then, in order:
 5. `migrations/20261023000000_type_move_to_services_domain.sql`: moves Type accounts made on
    type.elum.example to type.elum.services, so they can sign in with their handle again. Safe to
    run more than once.
+6. `migrations/20261105000000_type_move_to_elum_space.sql`: ELUM's domain is elum.space, and Type
+   addresses live on it directly (name@elum.space). Moves every account on an older Type domain and
+   reserves more names. Safe to run more than once.
 
 Then set where Type lives, for links in notifications:
 
@@ -32,8 +35,8 @@ exposed in the API settings. Realtime needs nothing else: the migration adds `ty
 
 ## 2. The mail domain
 
-Type addresses live on `type.elum.services` (run `platform-changes/20261021120000_elum_services_domain.sql`
-if your database still says `type.elum.example`). Settle the mail domain before anyone takes a handle;
+Type addresses live on `elum.space` (run `migrations/20261105000000_type_move_to_elum_space.sql`
+if your database still says `type.elum.services`). Settle the mail domain before anyone takes a handle;
 addresses are permanent.
 
 In DNS for that domain: MX to Brevo inbound, SPF including Brevo, Brevo's DKIM keys, and DMARC
@@ -48,8 +51,8 @@ supabase functions deploy type-inbound --no-verify-jwt
 supabase functions deploy type-send
 supabase functions deploy type-inbox-worker --no-verify-jwt
 supabase secrets set BREVO_API_KEY=... CRON_SECRET=<long random> INBOUND_SECRET=<long random> \
-  TYPE_EMAIL_FROM="ELUM Type <hello@type.your-domain>" APP_URL=https://type.your-domain \
-  ELUM_WRITE_URL=https://write.your-domain
+  TYPE_EMAIL_FROM="ELUM Type <hello@elum.space>" APP_URL=https://type.elum.space \
+  ELUM_WRITE_URL=https://write.elum.space
 # Optional: CAPTCHA_PROVIDER=turnstile CAPTCHA_SECRET=... (once the sign-up form shows the widget)
 ```
 
@@ -59,6 +62,7 @@ supabase secrets set BREVO_API_KEY=... CRON_SECRET=<long random> INBOUND_SECRET=
 | `type-send` | Sends queued outside email through Brevo | pg_cron every minute, and the app right after sending |
 | `type-inbound` | Stores email for Type addresses | Brevo inbound parsing: `https://<ref>.functions.supabase.co/type-inbound?token=<INBOUND_SECRET>` |
 | `type-inbox-worker` | Turns platform events into inbox cards; cleans up deleted accounts | pg_cron every minute |
+| `elum-share-mail` | Emails people outside Type when something is shared with them in Make, Capture, Code, Inquire or Tune | pg_cron every minute |
 
 ## 4. Schedules
 
@@ -71,6 +75,11 @@ select cron.schedule('type-send', '* * * * *', $$
 $$);
 select cron.schedule('type-inbox-worker', '* * * * *', $$
   select net.http_post(url := 'https://<ref>.functions.supabase.co/type-inbox-worker',
+                       headers := jsonb_build_object('Authorization', 'Bearer <CRON_SECRET>'))
+$$);
+-- Share emails for people outside Type (secrets: BREVO_API_KEY, SHARE_EMAIL_FROM, CRON_SECRET).
+select cron.schedule('elum-share-mail', '* * * * *', $$
+  select net.http_post(url := 'https://<ref>.functions.supabase.co/elum-share-mail',
                        headers := jsonb_build_object('Authorization', 'Bearer <CRON_SECRET>'))
 $$);
 ```

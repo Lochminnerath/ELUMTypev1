@@ -1,11 +1,13 @@
 import { ArrowLeft, Bell, BellOff, ChevronDown, ChevronUp, Ellipsis, ImageOff, ShieldCheck } from 'lucide-react';
 import { AttachIcon, WarningIcon } from '../components/icons/ElumIcons';
 import { ArchiveIcon, DeleteIcon, DownloadIcon, ForwardIcon, ReplyAllIcon, ReplyIcon, RestoreIcon, SpamIcon, UnreadIcon } from '../components/icons/ElumIcons';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { api, errorMessage, type Address, type Attachment, type Folder, type Message, type Thread } from '../api';
 import { displayName, formatAddress, forwardSubject, replySubject } from '../api/validation';
-import { Avatar } from '../components/Avatar';
+import { PersonAvatar } from '../components/PersonAvatar';
+import { ChannelMark } from '../components/ChannelMark';
+import { CodeChip } from './CodeChip';
 import { TypeMark } from '../components/Brand';
 import { Loader } from '../components/Loader';
 import { Menu } from '../components/Menu';
@@ -16,6 +18,29 @@ import { formatFull, formatWhen } from '../lib/time';
 import { useType } from '../state/TypeProvider';
 import { MARK_READ_DELAY } from '../settings/typeSettings';
 import { EmailFrame } from './EmailFrame';
+import { guardHtml, guardText } from '../lib/signInGuard';
+
+/**
+ * Sign-in links never work from Type: an email that approves a sign-in or signs someone in shows
+ * its words, but its links are taken out (lib/signInGuard.ts). type-inbound does this before an
+ * email is stored; this catches anything stored earlier.
+ */
+function useGuarded(m: Message): { message: Message; removed: number } {
+  return useMemo(() => {
+    const h = m.html ? guardHtml(m.html) : { html: m.html, removed: 0 };
+    const t = guardText(m.text ?? '');
+    return { message: { ...m, html: h.html, text: t.text }, removed: h.removed + t.removed };
+  }, [m]);
+}
+
+function SignInGuardNote() {
+  return (
+    <p className="signin-guard" role="note">
+      <strong>Sign-in links are switched off in Type.</strong> To approve a sign-in, open ELUM Account on a device you already trust. If you did not try to sign in,
+      change your password there.
+    </p>
+  );
+}
 import { ReplyDock } from './ReplyDock';
 import './thread.css';
 import { SupportLinks } from '../components/SupportLink';
@@ -266,18 +291,24 @@ function StatusLine({ message }: { message: Message }) {
 }
 
 /** An ELUM message as a bubble: yours on the right in mint, theirs on the left on paper. */
-function Bubble({ message: m, grouped, showMeta, onForward }: { message: Message; grouped: boolean; showMeta: boolean; onForward: () => void }) {
+function Bubble({ message: raw, grouped, showMeta, onForward }: { message: Message; grouped: boolean; showMeta: boolean; onForward: () => void }) {
+  const { message: m, removed } = useGuarded(raw);
   const body = m.html ? cleanRichText(m.html) : linkify(m.text);
   return (
     <div className="bubble-row" data-mine={m.mine || undefined} data-grouped={grouped || undefined}>
       {!m.mine && (
-        <span className="bubble-row__avatar">{!grouped && <Avatar user={{ name: displayName(m.from), color: m.from.color ?? null }} size={32} />}</span>
+        <span className="bubble-row__avatar">{!grouped && <PersonAvatar person={m.from} size={32} />}</span>
       )}
       <div className="bubble-row__body">
-        {!m.mine && !grouped && <span className="bubble__author">{displayName(m.from)}</span>}
+        {!m.mine && !grouped && (
+          <span className="bubble__author">
+            {displayName(m.from)} <ChannelMark kind="elum" size={12} />
+          </span>
+        )}
         <div className="bubble" data-auto={m.auto || undefined}>
           {m.auto && <span className="bubble__auto">Automatic reply</span>}
           {m.subject && !grouped && <strong className="bubble__subject">{m.subject}</strong>}
+          {removed > 0 && <SignInGuardNote />}
           <div className="bubble__text" data-plain={!m.html || undefined} dangerouslySetInnerHTML={{ __html: body }} />
           <Attachments list={m.attachments} />
         </div>
@@ -299,7 +330,7 @@ function Bubble({ message: m, grouped, showMeta, onForward }: { message: Message
 
 /** An email as a card: sender, recipients, full headers on demand, and the body in a safe frame. */
 function EmailCard({
-  message: m,
+  message: raw,
   collapsed: startCollapsed,
   onReply,
   onReplyAll,
@@ -311,6 +342,7 @@ function EmailCard({
   onReplyAll: () => void;
   onForward: () => void;
 }) {
+  const { message: m, removed } = useGuarded(raw);
   const { imageSenders, allowImages, start } = useType();
   const [collapsed, setCollapsed] = useState(startCollapsed);
   const [details, setDetails] = useState(false);
@@ -323,7 +355,7 @@ function EmailCard({
   if (collapsed) {
     return (
       <button type="button" className="email-card email-card--collapsed" onClick={() => setCollapsed(false)}>
-        <Avatar user={{ name: displayName(m.from), color: m.from.isElum ? m.from.color : null }} size={32} />
+        <PersonAvatar person={m.from} size={32} />
         <span className="email-card__from">{displayName(m.from)}</span>
         <span className="email-card__peek">{m.text.slice(0, 120)}</span>
         <time className="email-card__time" dateTime={m.createdAt}>
@@ -336,11 +368,12 @@ function EmailCard({
   return (
     <article className="email-card" aria-label={`From ${displayName(m.from)}`}>
       <header className="email-card__head">
-        <Avatar user={{ name: displayName(m.from), color: m.from.isElum ? m.from.color : null }} size={40} />
+        <PersonAvatar person={m.from} size={40} />
         <div className="email-card__who">
           <span className="email-card__from">
             {displayName(m.from)}
             {!m.from.isElum && <span className="email-card__address">{m.from.address}</span>}
+            <ChannelMark kind={m.from.isElum ? 'elum' : 'email'} size={14} />
           </span>
           <span className="email-card__to">
             to {recipients.length ? recipients.map((r) => (r.address === m.from.address ? 'themselves' : displayName(r))).join(', ') : 'you'}
@@ -429,6 +462,8 @@ function EmailCard({
 
       <div className="email-card__body">
         {m.auto && <p className="bubble__auto">Automatic reply</p>}
+        {removed > 0 && <SignInGuardNote />}
+        {!m.mine && removed === 0 && <CodeChip subject={m.subject} text={m.text} />}
         {m.html ? (
           <EmailFrame html={m.html} allowImages={images} title={`Message from ${displayName(m.from)}`} onBlocked={setBlocked} />
         ) : (

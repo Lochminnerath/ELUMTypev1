@@ -1,0 +1,281 @@
+/* ELUM Support: the list of conversations and the open one, laid out like the inbox. */
+.support {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: clamp(300px, 28vw, 360px) minmax(0, 1fr);
+}
+.support__list {
+  min-height: 0;
+  overflow: auto;
+  border-right: 1px solid var(--hairline);
+  background: var(--surface);
+}
+.support__list-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 20px var(--space-4) var(--space-3);
+  background: var(--surface);
+}
+.support__heading {
+  margin: 0;
+  font: 400 24px/32px var(--font-display);
+}
+.support__error {
+  margin: var(--space-3) var(--space-4);
+  color: var(--danger, #b3261e);
+}
+.support__empty,
+.support__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+}
+.support__empty p {
+  max-width: 30ch;
+  margin: 0;
+  color: var(--ink-muted);
+}
+.support__items {
+  margin: 0;
+  padding: 0 var(--space-2) var(--space-4);
+  list-style: none;
+}
+.support-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  color: inherit;
+  text-decoration: none;
+}
+.support-row:hover {
+  background: var(--surface-glass);
+}
+.support-row[aria-current='page'] {
+  background: color-mix(in srgb, var(--type) 14%, var(--surface));
+}
+.support-row__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.support-row__top,
+.support-row__line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.support-row__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.support-row[data-unread] .support-row__title {
+  font-weight: 700;
+}
+.support-row__top time {
+  flex: none;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+.support-row__snippet {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+.support-row__status {
+  flex: none;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-glass);
+  color: var(--ink-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.support-row__status[data-status='open'],
+.support-row__status[data-status='new'] {
+  background: color-mix(in srgb, var(--type) 16%, var(--surface));
+  color: var(--type-deep);
+}
+
+/* The ELUM mark with its verified badge, and the name beside it. */
+.support-mark {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+.support-mark img {
+  display: block;
+}
+.support-mark__badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--elum-blue-deep);
+}
+.support-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font: inherit;
+  font-weight: 600;
+}
+.support-name__badge {
+  flex: none;
+  color: var(--elum-blue-deep);
+}
+
+/* The open conversation. */
+.support-chat {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+}
+.support-chat--empty {
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  text-align: center;
+}
+.support-chat__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: var(--space-3) 20px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface);
+}
+.support-chat__who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.support-chat__who h2 {
+  font-size: 16px;
+}
+.support-chat__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+.support-chat__messages {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-4) 20px 20px;
+}
+.support-chat__hint {
+  max-width: 44ch;
+  margin: var(--space-6) auto;
+  color: var(--ink-muted);
+  text-align: center;
+}
+.support-chat__agent {
+  font-weight: 500;
+}
+.bubble-row[data-mine] .bubble {
+  background: color-mix(in srgb, var(--type) 18%, var(--surface));
+  border-color: color-mix(in srgb, var(--type) 35%, var(--hairline));
+}
+.support-chat__me {
+  padding-top: 0;
+}
+.support-chat__compose {
+  padding: var(--space-3) 20px var(--space-4);
+  border-top: 1px solid var(--hairline);
+  background: var(--surface);
+}
+.support-chat__box {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+.support-chat__input {
+  flex: 1;
+  min-height: 48px;
+  max-height: 200px;
+  padding: 12px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--page);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  line-height: 22px;
+  resize: vertical;
+}
+.support-chat__input:focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 1px;
+}
+.support-chat__note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+.support-chat__note .support-mark {
+  box-shadow: none;
+  background: none;
+}
+.support-chat__note .support-mark__badge {
+  display: none;
+}
+
+/* Pinned at the top of the inbox. */
+.support-pinned {
+  flex: none;
+  margin: 0;
+  padding: 6px 6px 0;
+  list-style: none;
+}
+.support-pinned__row {
+  background: color-mix(in srgb, var(--type) 7%, var(--surface));
+}
+
+@media (max-width: 860px) {
+  .support {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .support__list {
+    border-right: 0;
+  }
+  .support-chat__head,
+  .support-chat__messages,
+  .support-chat__compose {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+}

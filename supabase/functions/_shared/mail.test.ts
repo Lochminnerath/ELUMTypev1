@@ -3,11 +3,14 @@ import { cardFor, type Delivery } from './cards';
 import { fail, hasSecret } from './http';
 import {
   brevoPayload,
+  idempotencyKey,
   fromBrevoInbound,
   hasRemoteImages,
   isAutomatic,
   isDisposable,
   isSpam,
+  findCode,
+  spamVerdict,
   outboundBody,
   outcome,
   parseAddressHeader,
@@ -20,25 +23,25 @@ describe('inbound', () => {
   const item = {
     Uuid: ['x'],
     MessageId: '<abc@outside.org>',
-    InReplyTo: '<1@type.elum.services>',
+    InReplyTo: '<1@elum.space>',
     From: { Name: 'Kai Moreno', Address: 'Kai@Outside.org' },
-    To: [{ Name: 'Rae', Address: 'rae@type.elum.services' }],
-    Cc: [{ Name: null, Address: 'fen@type.elum.services' }, { Address: 'not an address' }],
+    To: [{ Name: 'Rae', Address: 'rae@elum.space' }],
+    Cc: [{ Name: null, Address: 'fen@elum.space' }, { Address: 'not an address' }],
     Subject: 'Re: Hello',
     RawHtmlBody: '<p>Hi</p><img src="https://t.example/p.gif">',
     RawTextBody: 'Hi',
     SentAtDate: '2026-10-17T10:00:00Z',
     SpamScore: 0.4,
-    Headers: { 'Authentication-Results': 'mx; spf=pass; dkim=pass; dmarc=pass', References: '<0@x> <1@type.elum.services>' },
+    Headers: { 'Authentication-Results': 'mx; spf=pass; dkim=pass; dmarc=pass', References: '<0@x> <1@elum.space>' },
     Attachments: [{ Name: '../../etc/passwd', ContentType: 'text/plain', ContentLength: 12, DownloadToken: 'tok' }],
   };
 
   it('reads a Brevo inbound item', () => {
     const mail = fromBrevoInbound(item);
     expect(mail.from).toEqual({ address: 'kai@outside.org', name: 'Kai Moreno' });
-    expect(mail.recipients).toEqual(['rae@type.elum.services', 'fen@type.elum.services']);
+    expect(mail.recipients).toEqual(['rae@elum.space', 'fen@elum.space']);
     expect(mail.cc).toHaveLength(1);
-    expect(mail.references).toEqual(['<0@x>', '<1@type.elum.services>']);
+    expect(mail.references).toEqual(['<0@x>', '<1@elum.space>']);
     expect(mail.attachments[0].name).toBe('_.._etc_passwd');
     expect(mail.date).toBe('2026-10-17T10:00:00.000Z');
     expect(isSpam(mail.headers, mail.spamScore)).toBe(false);
@@ -82,15 +85,15 @@ describe('outbound', () => {
   const message = {
     id: 'm1',
     threadId: 't1',
-    from: { address: 'rae@type.elum.services', name: 'Rae Reed' },
-    to: [{ address: 'kai@outside.org', name: 'Kai' }, { address: 'fen@type.elum.services', name: 'Fen' }, { address: 'ola@example.org', name: 'Ola' }],
+    from: { address: 'rae@elum.space', name: 'Rae Reed' },
+    to: [{ address: 'kai@outside.org', name: 'Kai' }, { address: 'fen@elum.space', name: 'Fen' }, { address: 'ola@example.org', name: 'Ola' }],
     cc: [],
     subject: 'Hello',
     text: 'Hi <Kai>',
     html: null,
-    messageId: '<m1@type.elum.services>',
+    messageId: '<m1@elum.space>',
     inReplyTo: '<prev@outside.org>',
-    references: ['<first@type.elum.services>'],
+    references: ['<first@elum.space>'],
     auto: false,
     signature: 'Rae',
     attachments: [],
@@ -102,22 +105,34 @@ describe('outbound', () => {
 
   it('builds the Brevo request', () => {
     const body = outboundBody(message, (h) => h);
-    expect(body.text).toBe('Hi <Kai>\n\n-- \nRae');
+    expect(body.text).toBe('Hi <Kai>\n\n-- \nRae\n\n---\nSent through ELUM. Get yours today. https://elum.space');
+    expect(body.html).toContain('alt="ELUM"');
+    expect(body.html).toContain('Sent through ELUM.');
+    expect(body.html).not.toMatch(/©|&copy;|copyright/i);
     expect(body.html).toContain('Hi &lt;Kai&gt;');
-    const p = brevoPayload(rows, 'type.elum.services', body, []);
+    const p = brevoPayload(rows, 'elum.space', body, []);
     // Outside recipients and Type addresses are shown; an external account's login email is not emailed.
-    expect(p.to).toEqual([{ email: 'kai@outside.org', name: 'Kai' }, { email: 'fen@type.elum.services', name: 'Fen' }]);
+    expect(p.to).toEqual([{ email: 'kai@outside.org', name: 'Kai' }, { email: 'fen@elum.space', name: 'Fen' }]);
     expect(p.bcc).toEqual([{ email: 'boss@outside.org' }]);
-    expect(p.sender).toEqual({ email: 'rae@type.elum.services', name: 'Rae Reed' });
+    expect(p.sender).toEqual({ email: 'rae@elum.space', name: 'Rae Reed' });
     expect(p.headers).toMatchObject({
-      'Message-Id': '<m1@type.elum.services>',
+      'Message-Id': '<m1@elum.space>',
       'In-Reply-To': '<prev@outside.org>',
-      References: '<first@type.elum.services> <prev@outside.org>',
+      References: '<first@elum.space> <prev@outside.org>',
     });
   });
 
+  it('shows who it is from, with their picture or their colour', () => {
+    const plain = outboundBody(message, (h) => h);
+    expect(plain.html).toContain('>RR</div>');
+    expect(plain.html).toContain('rae@elum.space');
+    const pictured = outboundBody(message, (h) => h, 'https://cdn.example/rae.png?token=a&b');
+    expect(pictured.html).toContain('<img src="https://cdn.example/rae.png?token=a&amp;b"');
+    expect(pictured.html).not.toContain('>RR</div>');
+  });
+
   it('marks automatic replies', () => {
-    const p = brevoPayload([{ ...rows[0], message: { ...message, auto: true } }], 'type.elum.services', { html: '', text: '' }, []);
+    const p = brevoPayload([{ ...rows[0], message: { ...message, auto: true } }], 'elum.space', { html: '', text: '' }, []);
     expect((p.headers as Record<string, string>)['Auto-Submitted']).toBe('auto-replied');
   });
 
@@ -176,5 +191,41 @@ describe('helpers', () => {
     expect(sixDigitCode()).toMatch(/^\d{6}$/);
     expect(isDisposable('x@mailinator.com')).toBe(true);
     expect(isDisposable('x@gmail.com')).toBe(false);
+  });
+});
+
+describe('idempotencyKey', () => {
+  it('is a UUID whatever the number of recipients', () => {
+    const ids = Array.from({ length: 50 }, (_, i) => String(1000 + i));
+    const key = idempotencyKey('6ee0134e-fe0c-449b-9341-5695a0e333c9', ids);
+    expect(key).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  });
+  it('is the same for the same rows, in any order, and differs for other rows', () => {
+    expect(idempotencyKey('m', ['b', 'a'])).toBe(idempotencyKey('m', ['a', 'b']));
+    expect(idempotencyKey('m', ['a'])).not.toBe(idempotencyKey('m', ['b']));
+  });
+});
+
+describe('spam rules', () => {
+  const base = { headers: {}, spamScore: null, from: { address: 'kai@outside.org', name: 'Kai' }, subject: 'Proofs', text: 'Here are the proofs.', attachments: [] };
+  it('lets ordinary mail through', () => {
+    expect(spamVerdict(base, '<p>Here are the proofs.</p>')).toBe(false);
+  });
+  it('always stops forged mail, even with a code', () => {
+    expect(spamVerdict({ ...base, headers: { 'Authentication-Results': 'mx; dmarc=fail' }, subject: 'Your code', text: 'Your code is 482913' }, null)).toBe(true);
+  });
+  it('never stops a sign-in code', () => {
+    expect(spamVerdict({ ...base, spamScore: 9, subject: '482913 is your verification code', text: 'Use it to sign in.' }, null)).toBe(false);
+    expect(findCode('Confirm your email', 'Your code: 482 913')).toBe('482913');
+  });
+  it('adds up the signs of spam', () => {
+    expect(spamVerdict({ ...base, subject: 'YOU HAVE WON A PRIZE TODAY!!!', text: 'Claim your prize with a gift card.' }, null)).toBe(true);
+    expect(spamVerdict({ ...base, attachments: [{ name: 'invoice.pdf.exe', mime: 'application/octet-stream', bytes: 10 }] }, null)).toBe(true);
+    expect(spamVerdict({ ...base, from: { address: 'x@bad.example', name: 'support@yourbank.com' }, headers: { 'Reply-To': 'y@other.example' }, text: 'Your account will be suspended.' }, null)).toBe(true);
+  });
+  it('catches a link that shows one address and goes to another', () => {
+    const html = '<a href="https://evil.example/login">https://yourbank.com/login</a>';
+    expect(spamVerdict({ ...base, text: 'Your account will be suspended.' }, html)).toBe(true);
+    expect(spamVerdict(base, '<a href="https://outside.org/proofs">outside.org/proofs</a>')).toBe(false);
   });
 });

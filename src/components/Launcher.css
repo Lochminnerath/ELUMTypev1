@@ -161,3 +161,22 @@ a.launcher__tile:active .launcher__disc {
     animation: none;
   }
 }
+
+/* Not on this account yet: the tile opens the app's page in ELUM Store. */
+.launcher__tile[data-get] .launcher__note {
+  color: var(--action);
+  font-weight: 600;
+}
+
+.launcher__icon circle {
+  transition: transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.launcher__trigger:hover .launcher__icon-a { transform: translate(-0.6px, -0.6px); }
+.launcher__trigger:hover .launcher__icon-b { transform: translate(0.6px, -0.6px) scale(1.08); }
+.launcher__trigger:hover .launcher__icon-c { transform: translate(-0.6px, 0.6px); }
+.launcher__trigger:hover .launcher__icon-d { transform: translate(0.6px, 0.6px); }
+@media (prefers-reduced-motion: reduce) {
+  .launcher__icon circle { transition: none; }
+}
