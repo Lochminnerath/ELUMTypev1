@@ -126,3 +126,41 @@
 .notice__service[data-service='inquire'] {
   color: var(--inquire-deep);
 }
+
+/* A clear way out: the close button, and on phones a sheet from the bottom over a dimmed page. */
+.notifications__head {
+  gap: 8px;
+}
+.notifications__title {
+  margin-right: auto;
+}
+.notifications__close {
+  flex: none;
+  min-width: 36px;
+  min-height: 36px;
+}
+@media (max-width: 640px) {
+  .floating-panel.notifications {
+    top: auto !important;
+    left: 0 !important;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    max-height: 78dvh !important;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    /* The dimmed page above the sheet: tapping it closes the notifications. */
+    box-shadow: 0 0 0 100vmax rgba(8, 10, 16, 0.38);
+    animation: notifications-up 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .notifications__close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+@keyframes notifications-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}

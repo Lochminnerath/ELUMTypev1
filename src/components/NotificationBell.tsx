@@ -81,6 +81,11 @@ export function NotificationBell() {
                 Mark all read
               </button>
             )}
+            <button type="button" className="icon-btn notifications__close" aria-label="Close notifications" data-tip="Close" onClick={close}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
           </header>
           {items.length === 0 ? (
             <p className="notifications__empty muted">Nothing new. Shares, comments and messages from every ELUM app show up here.</p>
