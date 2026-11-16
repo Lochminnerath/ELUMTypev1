@@ -164,3 +164,65 @@
     opacity: 0;
   }
 }
+
+/* Every ELUM service in its own colour, the same in every app. */
+.notice__service-dot[data-service='write'] {
+  background: var(--write, #f59a52);
+}
+.notice__service[data-service='write'] {
+  color: color-mix(in srgb, var(--write, #f59a52) 62%, var(--ink));
+}
+.notice__service-dot[data-service='type'] {
+  background: var(--type, #3fc4a0);
+}
+.notice__service[data-service='type'] {
+  color: color-mix(in srgb, var(--type, #3fc4a0) 62%, var(--ink));
+}
+.notice__service-dot[data-service='make'] {
+  background: var(--make, #ec7fa9);
+}
+.notice__service[data-service='make'] {
+  color: color-mix(in srgb, var(--make, #ec7fa9) 62%, var(--ink));
+}
+.notice__service-dot[data-service='account'] {
+  background: var(--account, #94c858);
+}
+.notice__service[data-service='account'] {
+  color: color-mix(in srgb, var(--account, #94c858) 62%, var(--ink));
+}
+.notice__service-dot[data-service='browse'] {
+  background: var(--browse, #9b84ee);
+}
+.notice__service[data-service='browse'] {
+  color: color-mix(in srgb, var(--browse, #9b84ee) 62%, var(--ink));
+}
+.notice__service-dot[data-service='store'] {
+  background: var(--store, #e9b949);
+}
+.notice__service[data-service='store'] {
+  color: color-mix(in srgb, var(--store, #e9b949) 62%, var(--ink));
+}
+.notice__service-dot[data-service='inquire'] {
+  background: var(--inquire, #f06a5f);
+}
+.notice__service[data-service='inquire'] {
+  color: color-mix(in srgb, var(--inquire, #f06a5f) 62%, var(--ink));
+}
+.notice__service-dot[data-service='tune'] {
+  background: var(--tune, #48bfe3);
+}
+.notice__service[data-service='tune'] {
+  color: color-mix(in srgb, var(--tune, #48bfe3) 62%, var(--ink));
+}
+.notice__service-dot[data-service='code'] {
+  background: var(--code, #d27fe0);
+}
+.notice__service[data-service='code'] {
+  color: color-mix(in srgb, var(--code, #d27fe0) 62%, var(--ink));
+}
+.notice__service-dot[data-service='capture'] {
+  background: var(--capture, #5ec46f);
+}
+.notice__service[data-service='capture'] {
+  color: color-mix(in srgb, var(--capture, #5ec46f) 62%, var(--ink));
+}
