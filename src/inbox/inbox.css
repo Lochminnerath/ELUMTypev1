@@ -76,7 +76,7 @@
   background: var(--surface-glass);
   color: var(--ink);
 }
-.chip[aria-pressed='true'] {
+.chip[aria-current='page'] {
   background: var(--accent-mist);
   border-color: var(--accent);
   color: var(--accent-deep);
@@ -298,7 +298,7 @@
     position: fixed;
     z-index: 20;
     right: 16px;
-    bottom: calc(76px + env(safe-area-inset-bottom));
+    bottom: calc(76px + env(safe-area-inset-bottom) + var(--host-badge-h));
     height: 52px;
     padding: 0 20px;
     border-radius: var(--radius-pill);

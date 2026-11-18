@@ -2,10 +2,10 @@
 .compose {
   position: fixed;
   right: var(--space-6);
-  bottom: 0;
+  bottom: var(--host-badge-h);
   z-index: 40;
   width: min(560px, calc(100vw - 32px));
-  max-height: calc(100vh - var(--bar-h) - 24px);
+  max-height: calc(100vh - var(--bar-h) - 24px - var(--host-badge-h));
   display: flex;
   flex-direction: column;
   border: 1px solid var(--hairline);
@@ -17,7 +17,7 @@
 }
 .compose[data-expanded] {
   width: min(860px, calc(100vw - 32px));
-  height: calc(100vh - var(--bar-h) - 24px);
+  height: calc(100vh - var(--bar-h) - 24px - var(--host-badge-h));
 }
 .compose[data-sheet] {
   inset: 0;

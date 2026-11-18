@@ -150,7 +150,7 @@ export function InboxPage() {
                   key={v.view}
                   to={{ pathname: v.view === 'inbox' ? '/' : `/view/${v.view}`, search: location.search }}
                   className="chip"
-                  aria-pressed={v.view === view}
+                  aria-current={v.view === view ? 'page' : undefined}
                 >
                   {v.label}
                 </Link>
@@ -394,7 +394,7 @@ function CardRow({ card, onChange }: { card: InboxCard; onChange: () => void }) 
           )}
         </span>
       </span>
-      {!card.readAt && <span className="thread-row__dot card-row__dot" aria-label="Unread" />}
+      {!card.readAt && <span className="thread-row__dot card-row__dot" role="img" aria-label="Unread" />}
     </div>
   );
 }
