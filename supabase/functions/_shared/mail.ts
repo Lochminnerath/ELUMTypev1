@@ -198,13 +198,46 @@ export function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 }
 
-/** The body as people wrote it, plus their signature. Personal mail, so no branded template. */
+/** Where the ELUM footer's logo and link point. */
+export const ELUM_SITE = 'https://elum.space';
+export const ELUM_FOOTER_LOGO = 'https://account.elum.space/brand/email/elum-lockup.png';
+
+/** The line every email sent from Type to the outside world ends with. */
+export const ELUM_FOOTER_TEXT = 'Sent through ELUM. Get yours today.';
+
+/**
+ * The body as people wrote it, plus their signature, then a small ELUM footer: the logo and
+ * "Sent through ELUM. Get yours today." Personal mail otherwise, so no branded template.
+ * Accessible: a language, a real alt text on the logo, readable contrast, and a plain-text twin.
+ */
 export function outboundBody(m: OutboundMessage, cleanHtml: (html: string) => string): { html: string; text: string } {
-  const text = m.signature ? `${m.text}\n\n-- \n${m.signature}` : m.text;
+  const written = m.signature ? `${m.text}\n\n-- \n${m.signature}` : m.text;
+  const text = `${written}\n\n---\n${ELUM_FOOTER_TEXT} ${ELUM_SITE}`;
   const body = m.html ? cleanHtml(m.html) : escapeHtml(m.text).replace(/\n/g, '<br>');
   const signature = m.signature ? `<p style="color:#5a6178">-- <br>${escapeHtml(m.signature).replace(/\n/g, '<br>')}</p>` : '';
-  const html = `<!doctype html><html><head><meta charset="utf-8"></head><body style="font:15px/1.6 Manrope,'Helvetica Neue',Helvetica,Arial,sans-serif;color:#141a2e">${body}${signature}</body></html>`;
+  const footer = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:32px 0 0;border-top:1px solid #e2e5ee;padding:0">
+<tr><td style="padding:14px 0 0;vertical-align:middle"><a href="${ELUM_SITE}" style="text-decoration:none"><img src="${ELUM_FOOTER_LOGO}" width="76" height="24" alt="ELUM" style="display:block;border:0"></a></td></tr>
+<tr><td style="padding:8px 0 0;font:13px/20px Manrope,'Helvetica Neue',Helvetica,Arial,sans-serif;color:#5a6178">Sent through ELUM. <a href="${ELUM_SITE}" style="color:#3b5bd6">Get yours today.</a></td></tr>
+</table>`;
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="font:15px/1.6 Manrope,'Helvetica Neue',Helvetica,Arial,sans-serif;color:#141a2e">${body}${signature}${footer}</body></html>`;
   return { html, text };
+}
+
+/**
+ * The key Brevo uses to drop a retried send: it must be a UUID (anything longer is refused with
+ * "Idempotency key exceeds char limit"). Built from the message id and its outbox rows, so the same
+ * send always gets the same key and a different set of recipients gets another.
+ */
+export function idempotencyKey(messageId: string, outboxIds: string[]): string {
+  const input = `${messageId}:${[...outboxIds].sort().join('.')}`;
+  const part = (seed: number) => {
+    let h = seed >>> 0;
+    for (let i = 0; i < input.length; i++) h = Math.imul(h ^ input.charCodeAt(i), 0x01000193) >>> 0;
+    return h.toString(16).padStart(8, '0');
+  };
+  const hex = part(0x811c9dc5) + part(0x9e3779b9) + part(0x85ebca6b) + part(0xc2b2ae35);
+  // Shaped as a version 4, variant 1 UUID.
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-${'89ab'[parseInt(hex[16], 16) & 3]}${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
 }
 
 /**
@@ -233,8 +266,9 @@ export function brevoPayload(
   const refs = [...m.references, ...(m.inReplyTo && !m.references.includes(m.inReplyTo) ? [m.inReplyTo] : [])];
   if (refs.length) headers.References = refs.join(' ');
   if (m.auto) headers['Auto-Submitted'] = 'auto-replied';
-  // Brevo de-duplicates a retried request with the same key.
-  headers.idempotencyKey = `${m.id}:${rows.map((r) => r.outbox_id).join('.')}`;
+  // Brevo de-duplicates a retried request with the same key. It must stay short (Brevo refuses a
+  // long one with "Idempotency key exceeds char limit"), so the outbox rows go in as a hash.
+  headers.idempotencyKey = idempotencyKey(m.id, rows.map((r) => String(r.outbox_id)));
   return {
     sender: fmt(m.from),
     to,

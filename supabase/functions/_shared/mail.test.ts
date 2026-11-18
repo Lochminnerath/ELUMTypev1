@@ -3,6 +3,7 @@ import { cardFor, type Delivery } from './cards';
 import { fail, hasSecret } from './http';
 import {
   brevoPayload,
+  idempotencyKey,
   fromBrevoInbound,
   hasRemoteImages,
   isAutomatic,
@@ -102,7 +103,10 @@ describe('outbound', () => {
 
   it('builds the Brevo request', () => {
     const body = outboundBody(message, (h) => h);
-    expect(body.text).toBe('Hi <Kai>\n\n-- \nRae');
+    expect(body.text).toBe('Hi <Kai>\n\n-- \nRae\n\n---\nSent through ELUM. Get yours today. https://elum.space');
+    expect(body.html).toContain('alt="ELUM"');
+    expect(body.html).toContain('Sent through ELUM.');
+    expect(body.html).not.toMatch(/©|&copy;|copyright/i);
     expect(body.html).toContain('Hi &lt;Kai&gt;');
     const p = brevoPayload(rows, 'elum.space', body, []);
     // Outside recipients and Type addresses are shown; an external account's login email is not emailed.
@@ -176,5 +180,17 @@ describe('helpers', () => {
     expect(sixDigitCode()).toMatch(/^\d{6}$/);
     expect(isDisposable('x@mailinator.com')).toBe(true);
     expect(isDisposable('x@gmail.com')).toBe(false);
+  });
+});
+
+describe('idempotencyKey', () => {
+  it('is a UUID whatever the number of recipients', () => {
+    const ids = Array.from({ length: 50 }, (_, i) => String(1000 + i));
+    const key = idempotencyKey('6ee0134e-fe0c-449b-9341-5695a0e333c9', ids);
+    expect(key).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  });
+  it('is the same for the same rows, in any order, and differs for other rows', () => {
+    expect(idempotencyKey('m', ['b', 'a'])).toBe(idempotencyKey('m', ['a', 'b']));
+    expect(idempotencyKey('m', ['a'])).not.toBe(idempotencyKey('m', ['b']));
   });
 });
