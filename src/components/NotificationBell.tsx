@@ -6,6 +6,8 @@ import { openElsewhere, WRITE_URL } from '../lib/elum';
 import { formatWhen } from '../lib/time';
 import { Avatar } from './Avatar';
 import { Popover } from './Popover';
+import { arrived } from '../lib/attention';
+import { SoundToggle } from './SoundToggle';
 import './NotificationBell.css';
 
 const POLL_MS = 60_000;
@@ -33,7 +35,11 @@ export function NotificationBell() {
     if (!feed) return;
     void load();
     const timer = window.setInterval(() => document.visibilityState === 'visible' && void load(), POLL_MS);
-    const unsubscribe = feed.subscribe((n) => setItems((list) => (list.some((x) => x.id === n.id) ? list : [n, ...list])));
+    const unsubscribe = feed.subscribe((n) => {
+      // The ELUM chime, and a count on the tab while it is in the background.
+      arrived(n);
+      setItems((list) => (list.some((x) => x.id === n.id) ? list : [n, ...list]));
+    });
     return () => {
       window.clearInterval(timer);
       unsubscribe();
@@ -76,6 +82,7 @@ export function NotificationBell() {
         <div className="notifications__body">
           <header className="notifications__head">
             <h2 className="notifications__title">Notifications</h2>
+            <SoundToggle />
             {unread > 0 && (
               <button type="button" className="elum-btn elum-btn--quiet elum-btn--sm" onClick={() => void feed.markRead().then(load)}>
                 Mark all read
