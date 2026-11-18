@@ -9,7 +9,7 @@
 //   CAPTCHA_PROVIDER   turnstile or hcaptcha. With CAPTCHA_SECRET set, sign-up needs a token.
 //   CAPTCHA_SECRET     The provider's secret key.
 //   BREVO_API_KEY      For recovery codes. Without it, the code is not sent (the person can resend later).
-//   TYPE_EMAIL_FROM    Sender, for example "ELUM Type <hello@type.elum.services>".
+//   TYPE_EMAIL_FROM    Sender, for example "ELUM Type <hello@elum.space>".
 //   APP_URL            Where Type is hosted, for images in emails, for example https://typebyelum.netlify.app
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase.
 //
@@ -29,6 +29,8 @@ interface SignupBody {
   password?: string;
   recoveryEmail?: string;
   captchaToken?: string;
+  /** ELUM Ensure's one-time pass, from the "press and hold" check in ELUM Account. */
+  ensurePass?: string;
 }
 
 Deno.serve(async (req) => {
@@ -72,8 +74,21 @@ Deno.serve(async (req) => {
   const domain = await typeDomain(db);
   if (recovery?.endsWith(`@${domain}`)) return fail('invalid', 'Use a recovery email outside ELUM Type.', { field: 'recoveryEmail' });
 
+  // ELUM Ensure: the person check for this sign-up, spent here (once). It answers true when ELUM
+  // Ensure is switched off. Until its migration is in, the function is missing and sign-up goes on.
+  const ensured = await db.rpc('elum_ensure_redeem', { p_pass: body.ensurePass ?? null, p_action: 'sign_up', p_ip: ip });
+  if (ensured.error && ensured.error.code !== 'PGRST202') return fromDbError(ensured.error);
+  if (!ensured.error && ensured.data !== true) return fail('forbidden', 'Confirm you are a person first, then try again.');
+
   // 3. The user, with the Type address as a confirmed login. The profile and login address follow by trigger.
-  const created = await db.auth.admin.createUser({ email: `${handle}@${domain}`, password, email_confirm: true, user_metadata: { name } });
+  // app_metadata.ensure tells ELUM Ensure's sign-up hook that the check was done here.
+  const created = await db.auth.admin.createUser({
+    email: `${handle}@${domain}`,
+    password,
+    email_confirm: true,
+    user_metadata: { name },
+    app_metadata: { ensure: 'checked' },
+  });
   if (created.error || !created.data.user) {
     const message = created.error?.message ?? '';
     if (/already|registered|exists/i.test(message)) return fail('conflict', 'That name is taken.', { field: 'handle' });

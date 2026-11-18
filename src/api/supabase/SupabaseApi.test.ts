@@ -21,16 +21,16 @@ function fakeClient(serverDomain: string | null) {
 describe('signing in with a handle', () => {
   it('uses the Type domain the database has, not the one the build assumed', async () => {
     const { client, tried } = fakeClient('type.elum.example');
-    const api = new SupabaseApi('https://x.supabase.co', 'anon', { typeDomain: 'type.elum.services', client });
+    const api = new SupabaseApi('https://x.supabase.co', 'anon', { typeDomain: 'elum.space', client });
     await expect(api.signIn({ login: 'Fen', password: 'secret-password' })).rejects.toThrow();
     expect(tried).toEqual(['fen@type.elum.example']);
   });
 
   it('falls back to the configured domain when the database cannot say', async () => {
     const { client, tried } = fakeClient(null);
-    const api = new SupabaseApi('https://x.supabase.co', 'anon', { typeDomain: 'type.elum.services', client });
+    const api = new SupabaseApi('https://x.supabase.co', 'anon', { typeDomain: 'elum.space', client });
     await expect(api.signIn({ login: 'fen', password: 'secret-password' })).rejects.toThrow();
-    expect(tried).toEqual(['fen@type.elum.services']);
+    expect(tried).toEqual(['fen@elum.space']);
   });
 
   it('signs in with a full address as typed', async () => {

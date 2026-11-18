@@ -4,8 +4,9 @@ import { mySignIn, type MySignIn } from "./approvals";
 import "./Approvals.css";
 
 /**
- * Shown on a new device whose sign-in waits for approval. It shows the number to pick on a device
- * that is already signed in, and carries on by itself once approved.
+ * Shown on a new device whose sign-in waits for approval. It shows the number to pick, either on
+ * the secure page the "Is this you signing in?" email opens or on a device that is already signed
+ * in, and carries on by itself once approved.
  */
 export function ApprovalWait({ sb }: { sb: SupabaseClient }) {
   const [state, setState] = useState<MySignIn | null>(null);
@@ -37,7 +38,8 @@ export function ApprovalWait({ sb }: { sb: SupabaseClient }) {
       }
       timer = window.setTimeout(check, 3000);
     };
-    // Ask ELUM to send "Is this you?" to the person's ELUM app. Sent once per sign-in.
+    // Ask ELUM to email the approval link and send "Is this you?" to the person's ELUM app.
+    // Sent once per sign-in.
     void sb.functions?.invoke("elum-push", { body: {} }).catch(() => undefined);
     void check();
     return () => {
@@ -95,7 +97,7 @@ export function ApprovalWait({ sb }: { sb: SupabaseClient }) {
   return (
     <div className="approval" aria-live="polite">
       <div className="approval__card">
-        <p className="approval__eyebrow">Confirm it's you</p>
+        <p className="approval__eyebrow">Confirm it is you</p>
         <span
           className="approval__disc"
           aria-label={
@@ -104,15 +106,15 @@ export function ApprovalWait({ sb }: { sb: SupabaseClient }) {
         >
           {state?.code ?? ""}
         </span>
-        <h1 className="approval__title">
-          Approve this sign-in on a device you are already signed in to
-        </h1>
+        <h1 className="approval__title">Check your email to approve this sign-in</h1>
         <p className="approval__text">
-          Open ELUM Type, ELUM Account or any ELUM app there. When it asks “Is
-          this you signing in?”, choose <strong>{state?.code ?? "…"}</strong>.
+          We sent “Is this you signing in to ELUM?” to your email. Press{" "}
+          <strong>Review this sign-in</strong>, then click{" "}
+          <strong>{state?.code ?? "…"}</strong> on the secure page.
         </p>
         <p className="approval__hint">
-          Your phone or computer on this network will ask you to approve.
+          Signed in on another device? ELUM there asks “Is this you signing
+          in?” too. Choose the same number.
         </p>
         <p className="approval__hint">
           No other device? Use “Forgot password” on the sign-in page: the email

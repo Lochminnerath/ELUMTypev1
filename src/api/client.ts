@@ -1,3 +1,4 @@
+import type { ServiceState } from '../lib/platform';
 import type {
   AppNotification,
   Attachment,
@@ -14,6 +15,8 @@ import type {
   Session,
   SignInInput,
   SignUpInput,
+  SupportSummary,
+  SupportThread,
   Thread,
   ThreadSummary,
   TypePreferences,
@@ -29,14 +32,28 @@ import type {
  * Every call except the auth ones acts as the signed-in person and fails with
  * `ApiError('unauthorized')` when there is no valid session.
  */
+export type ShareRole = 'viewer' | 'editor';
+
+/** Something you own in another ELUM app. */
+export interface ShareableItem {
+  app: 'write' | 'make' | 'inquire' | 'capture' | 'code' | 'tune';
+  id: string;
+  title: string;
+  updatedAt: string;
+  /** The path inside the app, such as /d/<id>. */
+  path: string;
+}
+
 export interface TypeApi {
   readonly mode: 'local' | 'remote';
-  /** The domain Type addresses live on, such as type.elum.services. */
+  /** The domain Type addresses live on, such as elum.space. */
   readonly typeDomain: string;
 
   // Accounts (one ELUM account for every service)
   restoreSession(): Promise<Session | null>;
   signIn(input: SignInInput): Promise<Session>;
+  /** Signs in with a passkey. Only on ELUM's own domain (elum.space), where passkeys work. */
+  signInWithPasskey?(): Promise<Session>;
   /** Type accounts get handle@typeDomain; external accounts confirm their own email first. */
   signUp(input: SignUpInput): Promise<Session>;
   signOut(): Promise<void>;
@@ -51,6 +68,14 @@ export interface TypeApi {
   accountData?(): Promise<Record<string, unknown>>;
   /** Merges flat keys into the account's remembered values. */
   updateAccountData?(patch: Record<string, unknown>): Promise<void>;
+  /** Conversations with ELUM Support, on ELUM's own network (no outside chat service). Optional. */
+  support?: SupportApi;
+  /** What you own across ELUM, for Share from ELUM in the composer. Optional. */
+  shareables?(query?: string): Promise<ShareableItem[]>;
+  /** Shares one of your things with someone, through that app's own share function. */
+  shareItem?(item: ShareableItem, email: string, role: ShareRole): Promise<void>;
+  /** Profile pictures of ELUM addresses, as their owners' privacy allows. Optional. */
+  pictures?(addresses: string[]): Promise<Record<string, string | null>>;
 
   // Type
   /** Joins the Type service, makes the mailbox, returns addresses and settings. Call on every start. */
@@ -96,6 +121,20 @@ export interface TypeApi {
 
   // The ELUM bell: notifications from every service.
   readonly notifications: NotificationsApi;
+
+  /** The ELUM apps this account has added (in ELUM Store). Null when signed out, or unknown. */
+  elumApps?(): Promise<string[] | null>;
+  /** This app as the ELUM Console set it: mode, message, open incidents and flags. */
+  serviceState?(service: string): Promise<ServiceState | null>;
+}
+
+export interface SupportApi {
+  list(): Promise<SupportSummary[]>;
+  /** Opening a conversation marks ELUM Support's messages in it as read. */
+  get(id: string): Promise<SupportThread>;
+  send(id: string, body: string): Promise<SupportThread>;
+  /** Starts a conversation. All it needs is a title. */
+  start(title: string): Promise<SupportThread>;
 }
 
 export interface NotificationsApi {

@@ -71,6 +71,21 @@ Deno.serve(async (req) => {
   return ok({ sent, notSent: failed });
 });
 
+/**
+ * The sender's picture for the top of the email, only when they show it to everyone (ELUM
+ * Account > Privacy). The link lasts a year, so the picture still shows when the email is read later.
+ */
+async function senderPicture(db: SupabaseClient, address: string): Promise<string | null> {
+  try {
+    const { data: path } = await db.rpc('type_sender_picture', { p_address: address });
+    if (!path) return null;
+    const signed = await db.storage.from('avatars').createSignedUrl(String(path), 60 * 60 * 24 * 365);
+    return signed.data?.signedUrl ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function deliver(
   db: SupabaseClient,
   key: string,
@@ -85,7 +100,7 @@ async function deliver(
       if (file.error || !file.data) return { status: 'retry', providerId: null, error: `Attachment ${a.name} could not be read.` };
       attachments.push({ name: a.name, content: base64(new Uint8Array(await file.data.arrayBuffer())) });
     }
-    const payload = brevoPayload(group, typeDomain, outboundBody(m, cleanComposerHtml), attachments);
+    const payload = brevoPayload(group, typeDomain, outboundBody(m, cleanComposerHtml, await senderPicture(db, m.from.address)), attachments);
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: { 'api-key': key, 'Content-Type': 'application/json', Accept: 'application/json' },

@@ -2,7 +2,7 @@
   "name": "elum-type",
   "private": true,
   "version": "0.1.0",
-  "description": "ELUM Type: messaging and email, built by people.",
+  "description": "ELUM Type: messaging and email, made by you.",
   "type": "module",
   "scripts": {
     "dev": "vite",

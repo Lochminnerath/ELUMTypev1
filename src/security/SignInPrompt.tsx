@@ -8,10 +8,9 @@ import './Approvals.css';
 const POLL_MS = 15_000;
 
 /**
- * On a device that is signed in: asks "Is this you signing in?" when a new sign-in waits for
- * approval, with the number the new device shows among two others. Picking the wrong number, or
- * "No, it's not me", ends that sign-in. A sign-in from the same network is marked nearby; it
- * still needs the right number.
+ * In Type, a sign-in waiting for approval is shown, but it cannot be approved here. Type is the
+ * mailbox, so anyone who got into it could otherwise approve their own sign-in. The person can stop
+ * the sign-in ("No, it is not me"), or approve it in ELUM Account on a device they trust.
  */
 export function SignInPrompt({ sb, securityUrl }: { sb: SupabaseClient; securityUrl: string }) {
   const toast = useToast();
@@ -70,7 +69,7 @@ export function SignInPrompt({ sb, securityUrl }: { sb: SupabaseClient; security
       open
       onClose={() => setRequest(null)}
       title="Is this you signing in?"
-      description={`${request.device}${request.ip ? `, ${request.ip}` : ''}, at ${when}. Choose the number it shows.`}
+      description={`${request.device}${request.ip ? `, ${request.ip}` : ''}, at ${when}.`}
       width={440}
       icon={
         <span className="approval-prompt__icon" aria-hidden="true">
@@ -81,9 +80,14 @@ export function SignInPrompt({ sb, securityUrl }: { sb: SupabaseClient; security
         </span>
       }
       footer={
-        <button type="button" className="elum-btn elum-btn--secondary approval-prompt__deny" disabled={busy} onClick={() => void answer(null)}>
-          No, it's not me
-        </button>
+        <>
+          <button type="button" className="elum-btn elum-btn--secondary approval-prompt__deny" disabled={busy} onClick={() => void answer(null)}>
+            No, it is not me
+          </button>
+          <a className="elum-btn elum-btn--primary" href={securityUrl} target="_blank" rel="noopener">
+            Approve in ELUM Account
+          </a>
+        </>
       }
     >
       {request.nearby && (
@@ -92,15 +96,11 @@ export function SignInPrompt({ sb, securityUrl }: { sb: SupabaseClient; security
           Nearby · on your network
         </p>
       )}
-      <div className="approval-prompt__numbers" role="group" aria-label="The number on the new device">
-        {request.numbers.map((n) => (
-          <button key={n} type="button" className="approval-prompt__number" disabled={busy} onClick={() => void answer(n)}>
-            {n}
-          </button>
-        ))}
-      </div>
+      <p className="approval-prompt__blocked">
+        For your safety, sign-ins cannot be approved in Type. Open ELUM Account on a device you already trust, and choose the number the new device shows.
+      </p>
       <p className="approval-prompt__note">
-        Not sure? Choose “No, it's not me”. You can see every device on your <a href={securityUrl}>Security page</a>.
+        Not sure? Choose “No, it is not me”. You can see every device on your <a href={securityUrl}>Security page</a>.
       </p>
     </Dialog>
   );

@@ -1,7 +1,7 @@
 {
   "name": "ELUM Type",
   "short_name": "Type",
-  "description": "Messages and email in one calm inbox. Built by people. Runs without AI.",
+  "description": "Messages and email in one calm inbox. Made by you. Runs without AI.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

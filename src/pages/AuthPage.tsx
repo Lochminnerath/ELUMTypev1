@@ -9,6 +9,8 @@ import { TypeLockup } from '../components/Brand';
 import { Loader } from '../components/Loader';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import './AuthPage.css';
+import { PasskeyIcon } from '../passkeys/PasskeyIcon';
+import { PasskeyCancelled, passkeySignInShown } from '../passkeys/passkey';
 
 type Mode = 'signin' | 'signup';
 type Kind = 'type' | 'external';
@@ -20,7 +22,7 @@ type HandleState = { kind: 'idle' } | { kind: 'checking' } | { kind: 'ok' } | { 
  * ELUM address by default; people can sign up with their own email instead.
  */
 export function AuthPage({ mode }: { mode: Mode }) {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signInWithPasskey, signUp } = useAuth();
   const navigate = useNavigate();
   const next = useSafeNext();
   const [kind, setKind] = useState<Kind>('type');
@@ -79,6 +81,18 @@ export function AuthPage({ mode }: { mode: Mode }) {
     } catch (err) {
       const field = isApiError(err) ? (err.details?.field as Field | undefined) : undefined;
       setError({ message: errorMessage(err), field, notice: isApiError(err, 'confirm_email') });
+      setBusy(false);
+    }
+  };
+
+  const withPasskey = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await signInWithPasskey();
+      navigate(next, { replace: true });
+    } catch (err) {
+      if (!(err instanceof PasskeyCancelled)) setError({ message: errorMessage(err) });
       setBusy(false);
     }
   };
@@ -260,6 +274,12 @@ export function AuthPage({ mode }: { mode: Mode }) {
           <button type="submit" className="elum-btn elum-btn--primary elum-btn--block auth__submit" disabled={busy}>
             {busy ? <Loader size={20} brand label={isSignUp ? 'Creating your account' : 'Signing in'} /> : isSignUp ? 'Create account' : 'Sign in'}
           </button>
+          {!isSignUp && api.signInWithPasskey && passkeySignInShown() && (
+            <button type="button" className="elum-btn elum-btn--secondary elum-btn--block auth__passkey" disabled={busy} onClick={() => void withPasskey()}>
+              <PasskeyIcon size={20} />
+              Sign in with a passkey
+            </button>
+          )}
 
           <p className="auth__switch">
             {isSignUp ? 'Already have an ELUM account?' : 'New to ELUM?'} <Link to={switchHref}>{isSignUp ? 'Sign in' : 'Create an account'}</Link>

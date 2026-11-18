@@ -489,3 +489,36 @@
     max-width: 85%;
   }
 }
+
+/* A sign-in code found in an email, ready to copy. */
+.code-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 0;
+  padding: 8px 8px 8px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface-glass);
+}
+.code-chip__label {
+  color: var(--ink-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.code-chip__code {
+  font-size: 20px;
+  letter-spacing: 0.16em;
+  user-select: all;
+}
+
+/* An email whose sign-in links Type has taken out. */
+.signin-guard {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm, 10px);
+  border: 1px solid color-mix(in srgb, var(--warning, #c98a1a) 40%, var(--hairline));
+  background: color-mix(in srgb, var(--warning, #c98a1a) 10%, var(--surface));
+  font-size: 13px;
+  line-height: 1.5;
+}

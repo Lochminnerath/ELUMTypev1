@@ -28,13 +28,13 @@ export const HOME_URL = clean(env.VITE_ELUM_HOME_URL) ?? 'https://elum.netlify.a
 const ELUM_ORIGINS = [ACCOUNT_URL, WRITE_URL, TYPE_URL, MAKE_URL, BROWSE_URL, STORE_URL, INQUIRE_URL].filter(Boolean).map((u) => new URL(u!).origin);
 
 /**
- * Where ELUM Account will hand a sign-in over: each app's own site, elum.services, and this
+ * Where ELUM Account will hand a sign-in over: each app's own site, elum.space, and this
  * computer while developing. Anywhere else, such as a Netlify deploy preview, the app signs in on
  * its own pages, because ELUM Account refuses to send sign-ins to addresses it does not know.
  */
 export function accountCanSignInAt(origin: string): boolean {
   const { hostname } = new URL(origin);
-  return ELUM_ORIGINS.includes(origin) || hostname === 'elum.services' || hostname.endsWith('.elum.services') || hostname === 'localhost' || hostname === '127.0.0.1';
+  return ELUM_ORIGINS.includes(origin) || hostname === 'elum.space' || hostname.endsWith('.elum.space') || hostname === 'localhost' || hostname === '127.0.0.1';
 }
 
 /** Signing in goes through ELUM Account when it is set up, Supabase is connected, and Account can sign people in here. */

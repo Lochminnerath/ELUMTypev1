@@ -1,11 +1,13 @@
 import { BellOff } from 'lucide-react';
-import { AttachIcon, ComposeIcon, VerifiedIcon } from '../components/icons/ElumIcons';
+import { AttachIcon, ComposeIcon } from '../components/icons/ElumIcons';
 import { ArchiveIcon, UnreadIcon } from '../components/icons/ElumIcons';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { api, errorMessage, type InboxCard, type InboxView, type ThreadSummary } from '../api';
-import { displayName } from '../api/validation';
 import { Avatar } from '../components/Avatar';
+import { PersonAvatar } from '../components/PersonAvatar';
+import { ChannelMark } from '../components/ChannelMark';
+import { SupportPinned } from '../support/SupportPinned';
 import { ProductGlyph, TypeMark, type Product } from '../components/Brand';
 import { useToast } from '../components/Toast';
 import { prefersReducedMotion } from '../lib/hooks';
@@ -168,6 +170,8 @@ export function InboxPage() {
             </div>
           )}
 
+          {view === 'inbox' && !query && <SupportPinned />}
+
           {threads === null && !error ? (
             <ListSkeleton />
           ) : rows.length === 0 && !error ? (
@@ -264,7 +268,6 @@ function ThreadRow({
 }) {
   const lead = leadPerson(thread.participants) ?? { address: thread.lastSender.address, name: thread.lastSender.name, isElum: false };
   const names = namesOf(thread.participants);
-  const elum = thread.kind === 'elum';
   const start = useRef<{ x: number; y: number } | null>(null);
   const moved = useRef(false);
   const [dx, setDx] = useState(0);
@@ -307,11 +310,14 @@ function ThreadRow({
           setDx(0);
         },
       })}
-    >      <Avatar user={{ name: displayName(lead), color: lead.isElum ? lead.color : null }} size={compact ? 32 : 40} />
+    >
+      <span className="thread-row__avatar">
+        <PersonAvatar person={lead} size={compact ? 32 : 40} />
+        <ChannelMark kind={thread.kind} size={12} className="channel-mark--badge" />
+      </span>
       <span className="thread-row__text">
         <span className="thread-row__top">
           <span className="thread-row__names">{names}</span>
-          {elum && <VerifiedIcon className="thread-row__elum" size={14} strokeWidth={2} aria-label="ELUM conversation" />}
           {thread.messageCount > 1 && <span className="thread-row__count">{thread.messageCount}</span>}
           <time className="thread-row__time" dateTime={thread.lastMessageAt} title={formatFull(thread.lastMessageAt)}>
             {formatWhen(thread.lastMessageAt)}

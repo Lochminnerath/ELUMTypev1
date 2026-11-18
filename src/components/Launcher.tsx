@@ -1,30 +1,41 @@
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
+import { ALWAYS_THERE, storePage, type ElumApp, type ElumAppId } from '../lib/platform';
 import { Popover } from './Popover';
 import './Launcher.css';
 
 /**
  * The ELUM launcher: a small window of round app tiles, opened from the top bar, for moving
- * between ELUM apps. The same component lives in every app; each passes its own list.
+ * between ELUM apps. The same component lives in every app. Apps the person has not added yet open
+ * their page in ELUM Store, where Get adds them.
  */
-export interface LauncherApp {
-  id: 'write' | 'type' | 'make' | 'account' | 'browse' | 'store' | 'inquire' | 'home';
-  name: string;
-  note: string;
-  /** Where it opens. Null while it is not open yet ("Soon"). */
-  url: string | null;
-  /** The app's colour, for its ring. */
-  color: string;
-}
+export type LauncherApp = ElumApp;
 
 interface LauncherProps {
   apps: LauncherApp[];
   /** The app this is. Its tile is marked and does not navigate. */
-  current: LauncherApp['id'];
+  current: ElumAppId;
+  /** The apps on this account (null while unknown, or signed out: then every tile just opens). */
+  added?: string[] | null;
   /** Opens another app (signed in where the app can). Plain left clicks only; others follow the link. */
-  onOpen(app: LauncherApp): void;
+  onOpen(url: string): void;
 }
 
-export function Launcher({ apps, current, onOpen }: LauncherProps) {
+/**
+ * The launcher's own symbol, drawn from the ELUM mark: three rings and one solid disc in this app's
+ * colour, set out like the apps in the window. The rings ease apart a little on hover.
+ */
+function LauncherIcon({ colour }: { colour?: string }) {
+  return (
+    <svg className="launcher__icon" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+      <circle className="launcher__icon-a" cx="5.6" cy="5.6" r="3.3" fill="none" stroke="currentColor" strokeWidth="1.7" />
+      <circle className="launcher__icon-b" cx="14.4" cy="5.6" r="3.3" fill={colour ?? 'currentColor'} />
+      <circle className="launcher__icon-c" cx="5.6" cy="14.4" r="3.3" fill="none" stroke="currentColor" strokeWidth="1.7" />
+      <circle className="launcher__icon-d" cx="14.4" cy="14.4" r="3.3" fill="none" stroke="currentColor" strokeWidth="1.7" />
+    </svg>
+  );
+}
+
+export function Launcher({ apps, current, added, onOpen }: LauncherProps) {
   // Arrow keys move between tiles, three to a row.
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const tiles = [...e.currentTarget.querySelectorAll<HTMLElement>('.launcher__tile:not([aria-disabled])')];
@@ -43,9 +54,7 @@ export function Launcher({ apps, current, onOpen }: LauncherProps) {
       className="launcher"
       trigger={(props) => (
         <button type="button" className="icon-btn icon-btn--round launcher__trigger" aria-label="ELUM apps" data-tip="ELUM apps" {...props}>
-          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-            {[4, 10, 16].flatMap((y) => [4, 10, 16].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="2.1" fill="currentColor" />))}
-          </svg>
+          <LauncherIcon colour={apps.find((a) => a.id === current)?.color} />
         </button>
       )}
     >
@@ -57,9 +66,10 @@ export function Launcher({ apps, current, onOpen }: LauncherProps) {
             <span className="launcher__tagline">Made by you. Runs without AI.</span>
           </div>
           <ul className="launcher__grid">
-            {apps.map((app, i) => {
+            {apps.filter((app) => app.id !== 'home').map((app, i) => {
               const here = app.id === current;
-              const soon = !app.url && !here;
+              const get = !here && !!added && !ALWAYS_THERE.includes(app.id) && !added.includes(app.id);
+              const url = get ? storePage(app.id) : app.url;
               const style = { '--app': app.color, '--i': i } as CSSProperties;
               const face = (
                 <>
@@ -68,31 +78,26 @@ export function Launcher({ apps, current, onOpen }: LauncherProps) {
                     <img className="theme-dark-only" src={`/brand/apps/${app.id}-reversed.svg`} alt="" />
                   </span>
                   <span className="launcher__name">{app.name}</span>
-                  <span className="launcher__note">{here ? 'Open now' : soon ? 'Soon' : app.note}</span>
+                  <span className="launcher__note">{here ? 'Open now' : get ? 'Get in Store' : app.note}</span>
                 </>
               );
               return (
                 <li key={app.id} style={style}>
-                  {here || soon ? (
-                    <span
-                      className="launcher__tile"
-                      data-here={here || undefined}
-                      aria-disabled={soon || undefined}
-                      aria-current={here ? 'page' : undefined}
-                      tabIndex={here ? 0 : undefined}
-                      onClick={here ? close : undefined}
-                    >
+                  {here ? (
+                    <span className="launcher__tile" data-here aria-current="page" tabIndex={0} onClick={close}>
                       {face}
                     </span>
                   ) : (
                     <a
                       className="launcher__tile"
-                      href={app.url!}
+                      href={url}
+                      data-get={get || undefined}
+                      aria-label={get ? `${app.name}: get it in ELUM Store` : undefined}
                       onClick={(e: MouseEvent<HTMLAnchorElement>) => {
                         if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                         e.preventDefault();
                         close();
-                        onOpen(app);
+                        onOpen(url);
                       }}
                     >
                       {face}

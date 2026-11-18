@@ -147,7 +147,7 @@ ${parts.join('\n')}
 <tr><td class="footer" style="padding:24px 4px 0">
 <table role="presentation" cellpadding="0" cellspacing="0"><tr>
 <td style="padding:0 10px 0 0;vertical-align:middle"><img src="${base}/brand/email/elum-mark.png" width="20" height="20" alt="ELUM" style="display:block;border:0"></td>
-<td style="font:600 12px/16px ${SANS};color:${C.muted};vertical-align:middle">Built by people. Runs without AI.</td>
+<td style="font:600 12px/16px ${SANS};color:${C.muted};vertical-align:middle">Made by you. Runs without AI.</td>
 </tr></table>
 <div style="padding:10px 0 0;font:400 12px/18px ${SANS};color:${C.muted}">${e(c.reason)}</div>
 </td></tr>
@@ -167,7 +167,7 @@ ${parts.join('\n')}
     c.button ? `${c.button.label}: ${c.button.url}` : null,
     c.note ?? null,
     '--',
-    'ELUM Type. Built by people. Runs without AI.',
+    'ELUM Type. Made by you. Runs without AI.',
     c.reason,
   ]
     .filter((l): l is string => l !== null)

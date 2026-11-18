@@ -1,9 +1,10 @@
 import { Maximize2, Minimize2, X } from 'lucide-react';
-import { AttachIcon, OfflineIcon, SavedIcon, SendIcon, WarningIcon } from '../components/icons/ElumIcons';
+import { AttachIcon, OfflineIcon, SavedIcon, SendIcon, ShareIcon, WarningIcon } from '../components/icons/ElumIcons';
+import { ShareFromElum, type ChosenItem } from './ShareFromElum';
 import { DeleteIcon } from '../components/icons/ElumIcons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { errorMessage, isApiError, type DraftInput } from '../api';
+import { api, errorMessage, isApiError, type DraftInput } from '../api';
 import { Loader } from '../components/Loader';
 import { useToast } from '../components/Toast';
 import { useMediaQuery } from '../lib/hooks';
@@ -53,6 +54,36 @@ export function Compose({ request }: { request: ComposeRequest }) {
   const mailboxes = start?.mailboxes ?? [];
   const from = mailboxes.find((m) => m.id === d.draft.mailboxId) ?? defaultMailbox!;
   const recipients = [...d.draft.to, ...d.draft.cc, ...d.draft.bcc] as Recipient[];
+  const [shared, setShared] = useState<ChosenItem[]>([]);
+  const [shareOpen, setShareOpen] = useState(false);
+
+  /** Adds things from other ELUM apps: a link in the message now, shared with everyone on Send. */
+  const addShared = (items: ChosenItem[]) => {
+    const fresh = items.filter((i) => !shared.some((s) => s.app === i.app && s.id === i.id));
+    if (!fresh.length) return;
+    setShared((list) => [...list, ...fresh]);
+    const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+    const name = (i: ChosenItem) => `ELUM ${i.app.charAt(0).toUpperCase()}${i.app.slice(1)}`;
+    const html = fresh.map((i) => `<p><a href="${esc(i.url)}">${esc(i.title)}</a> · ${name(i)}</p>`).join('');
+    const text = fresh.map((i) => `${i.title} (${name(i)}): ${i.url}`).join('\n');
+    d.update({ html: `${d.draft.html ?? ''}${html}`, text: `${d.draft.text}${d.draft.text ? '\n\n' : ''}${text}` });
+  };
+
+  /** Shares each chosen thing with each person on the message, through that app. */
+  const shareAll = async (people: string[]) => {
+    if (!shared.length || !api.shareItem) return;
+    const problems: string[] = [];
+    for (const item of shared) {
+      for (const email of people) {
+        try {
+          await api.shareItem(item, email, item.role);
+        } catch (e) {
+          problems.push(`“${item.title}” with ${email}: ${errorMessage(e)}`);
+        }
+      }
+    }
+    if (problems.length) throw new Error(`We could not share ${problems.join('; ')}`);
+  };
   const outside = recipients.filter((r) => !r.isElum && !r.address.endsWith(`@${start!.typeDomain}`));
 
   // Escape minimises rather than throwing words away.
@@ -92,7 +123,8 @@ export function Compose({ request }: { request: ComposeRequest }) {
         return;
       }
       const snapshot = { draft: { ...d.draft }, version: d.version.current, attachments: d.attachments };
-      const later = delayedSend(wait, () => d.send());
+      const people = recipients.map((r) => r.address);
+      const later = delayedSend(wait, () => shareAll(people).then(() => d.send()));
       closeCompose();
       toast(`Sending in ${wait} seconds`, { duration: wait * 1000, action: { label: 'Undo', onClick: () => later.cancel() } });
       later.done.then(
@@ -108,6 +140,7 @@ export function Compose({ request }: { request: ComposeRequest }) {
       return;
     }
     try {
+      await shareAll(recipients.map((r) => r.address));
       const result = await d.send();
       closeCompose();
       toast(result.status === 'queued' ? 'Sending. Outside email goes out in a moment.' : 'Sent', {
@@ -237,6 +270,26 @@ export function Compose({ request }: { request: ComposeRequest }) {
         </ul>
       )}
 
+      {shared.length > 0 && (
+        <ul className="attachment-list" aria-label="Shared from ELUM">
+          {shared.map((item) => (
+            <li key={`${item.app}:${item.id}`} className="attachment-chip shared-chip" title={`${item.role === 'editor' ? 'They can edit' : 'They can view'}. Shared when you press Send.`}>
+              <img src={`/brand/apps/${item.app}.svg`} alt="" />
+              <span className="attachment-chip__name">{item.title}</span>
+              <span className="attachment-chip__size">{item.role === 'editor' ? 'Can edit' : 'Can view'}</span>
+              <button
+                type="button"
+                className="address-chip__remove"
+                aria-label={`Do not share ${item.title}`}
+                onClick={() => setShared((list) => list.filter((x) => !(x.app === item.app && x.id === item.id)))}
+              >
+                <X size={12} strokeWidth={2.25} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
       {d.state === 'conflict' && (
         <div className="compose__notice" role="alert">
           <WarningIcon size={16} strokeWidth={2} aria-hidden="true" />
@@ -282,10 +335,16 @@ export function Compose({ request }: { request: ComposeRequest }) {
         <button type="button" className="icon-btn icon-btn--round compose__attach" aria-label="Attach files" data-tip="Attach files" onClick={() => fileRef.current?.click()}>
           <AttachIcon {...ICON} />
         </button>
+        {api.shareables && (
+          <button type="button" className="icon-btn icon-btn--round" aria-label="Share from ELUM" data-tip="Share from ELUM" onClick={() => setShareOpen(true)}>
+            <ShareIcon {...ICON} />
+          </button>
+        )}
         <button type="button" className="icon-btn icon-btn--round" aria-label="Discard draft" data-tip="Discard draft" onClick={() => void discard()}>
           <DeleteIcon {...ICON} />
         </button>
       </footer>
+      <ShareFromElum open={shareOpen} onClose={() => setShareOpen(false)} onAdd={addShared} />
     </section>
   );
 }

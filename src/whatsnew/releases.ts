@@ -115,7 +115,7 @@ export const RELEASES: Release[] = [
     features: [
       {
         title: "Your own address",
-        text: "Get an address on type.elum.services, and sign in with it or with just your name.",
+        text: "Get an address on elum.space, and sign in with it or with just your name.",
         art: 'check',
       },
       {

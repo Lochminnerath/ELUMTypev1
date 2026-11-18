@@ -126,3 +126,103 @@
 .notice__service[data-service='inquire'] {
   color: var(--inquire-deep);
 }
+
+/* A clear way out: the close button, and on phones a sheet from the bottom over a dimmed page. */
+.notifications__head {
+  gap: 8px;
+}
+.notifications__title {
+  margin-right: auto;
+}
+.notifications__close {
+  flex: none;
+  min-width: 36px;
+  min-height: 36px;
+}
+@media (max-width: 640px) {
+  .floating-panel.notifications {
+    top: auto !important;
+    left: 0 !important;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    max-height: 78dvh !important;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    /* The dimmed page above the sheet: tapping it closes the notifications. */
+    box-shadow: 0 0 0 100vmax rgba(8, 10, 16, 0.38);
+    animation: notifications-up 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .notifications__close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+@keyframes notifications-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+/* Every ELUM service in its own colour, the same in every app. */
+.notice__service-dot[data-service='write'] {
+  background: var(--write, #f59a52);
+}
+.notice__service[data-service='write'] {
+  color: color-mix(in srgb, var(--write, #f59a52) 62%, var(--ink));
+}
+.notice__service-dot[data-service='type'] {
+  background: var(--type, #3fc4a0);
+}
+.notice__service[data-service='type'] {
+  color: color-mix(in srgb, var(--type, #3fc4a0) 62%, var(--ink));
+}
+.notice__service-dot[data-service='make'] {
+  background: var(--make, #ec7fa9);
+}
+.notice__service[data-service='make'] {
+  color: color-mix(in srgb, var(--make, #ec7fa9) 62%, var(--ink));
+}
+.notice__service-dot[data-service='account'] {
+  background: var(--account, #94c858);
+}
+.notice__service[data-service='account'] {
+  color: color-mix(in srgb, var(--account, #94c858) 62%, var(--ink));
+}
+.notice__service-dot[data-service='browse'] {
+  background: var(--browse, #9b84ee);
+}
+.notice__service[data-service='browse'] {
+  color: color-mix(in srgb, var(--browse, #9b84ee) 62%, var(--ink));
+}
+.notice__service-dot[data-service='store'] {
+  background: var(--store, #e9b949);
+}
+.notice__service[data-service='store'] {
+  color: color-mix(in srgb, var(--store, #e9b949) 62%, var(--ink));
+}
+.notice__service-dot[data-service='inquire'] {
+  background: var(--inquire, #f06a5f);
+}
+.notice__service[data-service='inquire'] {
+  color: color-mix(in srgb, var(--inquire, #f06a5f) 62%, var(--ink));
+}
+.notice__service-dot[data-service='tune'] {
+  background: var(--tune, #48bfe3);
+}
+.notice__service[data-service='tune'] {
+  color: color-mix(in srgb, var(--tune, #48bfe3) 62%, var(--ink));
+}
+.notice__service-dot[data-service='code'] {
+  background: var(--code, #d27fe0);
+}
+.notice__service[data-service='code'] {
+  color: color-mix(in srgb, var(--code, #d27fe0) 62%, var(--ink));
+}
+.notice__service-dot[data-service='capture'] {
+  background: var(--capture, #5ec46f);
+}
+.notice__service[data-service='capture'] {
+  color: color-mix(in srgb, var(--capture, #5ec46f) 62%, var(--ink));
+}

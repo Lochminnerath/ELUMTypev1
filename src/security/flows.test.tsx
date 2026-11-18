@@ -39,7 +39,7 @@ function fakeClient(rpc: (name: string, args?: Record<string, unknown>) => unkno
 describe('Is this you signing in?', () => {
   const request = { id: 's1', device: 'Chrome on Windows', ip: '198.51.100.9', at: new Date().toISOString(), expiresAt: '', numbers: [17, 42, 88] };
 
-  it('asks with three numbers and approves with the one picked', async () => {
+  it('shows the sign-in but never offers the numbers in Type', async () => {
     const sb = fakeClient((name) => (name === 'elum_sign_in_requests' ? [request] : 'approved'));
     act(() =>
       root.render(
@@ -51,10 +51,11 @@ describe('Is this you signing in?', () => {
     await flush();
     expect(document.body.textContent).toContain('Is this you signing in?');
     expect(document.body.textContent).toContain('Chrome on Windows');
-    const numbers = [...document.querySelectorAll<HTMLButtonElement>('.approval-prompt__number')].map((b) => b.textContent);
-    expect(numbers).toEqual(['17', '42', '88']);
-    await act(async () => document.querySelectorAll<HTMLButtonElement>('.approval-prompt__number')[1].click());
-    expect(sb.rpc).toHaveBeenCalledWith('elum_answer_sign_in', { p_session: 's1', p_number: 42 });
+    // Type is the mailbox: someone who got into it must not be able to approve their own sign-in.
+    expect(document.querySelectorAll('.approval-prompt__number')).toHaveLength(0);
+    expect(document.body.textContent).not.toMatch(/\b(17|42|88)\b/);
+    expect(document.body.textContent).toContain('cannot be approved in Type');
+    expect(sb.rpc).not.toHaveBeenCalledWith('elum_answer_sign_in', expect.objectContaining({ p_number: expect.any(Number) }));
   });
 
   it('"No, it\'s not me" answers with no number', async () => {
@@ -67,7 +68,7 @@ describe('Is this you signing in?', () => {
       ),
     );
     await flush();
-    const deny = [...document.querySelectorAll('button')].find((b) => b.textContent === "No, it's not me")!;
+    const deny = [...document.querySelectorAll('button')].find((b) => b.textContent === 'No, it is not me')!;
     await act(async () => deny.click());
     expect(sb.rpc).toHaveBeenCalledWith('elum_answer_sign_in', { p_session: 's1', p_number: null });
   });

@@ -16,7 +16,7 @@ const ELUM_SUPABASE_KEY = 'sb_publishable_0o6tXC51UwLFHi8j8d9zcQ_xeB1eKyz';
 const browserOnly = env.MODE === 'test' || env.VITE_ELUM_PREVIEW === 'true';
 const supabaseUrl = browserOnly ? null : env.VITE_SUPABASE_URL?.trim() || ELUM_SUPABASE_URL;
 const supabaseKey = browserOnly ? null : env.VITE_SUPABASE_ANON_KEY?.trim() || ELUM_SUPABASE_KEY;
-const typeDomain = env.VITE_ELUM_TYPE_DOMAIN?.trim() || 'type.elum.services';
+const typeDomain = env.VITE_ELUM_TYPE_DOMAIN?.trim() || 'elum.space';
 
 export const api: TypeApi = supabaseUrl && supabaseKey ? new SupabaseApi(supabaseUrl, supabaseKey, { typeDomain }) : new LocalApi({ typeDomain });
 

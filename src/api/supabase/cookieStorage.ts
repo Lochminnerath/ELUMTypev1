@@ -1,6 +1,6 @@
 /**
- * Session storage in cookies on a shared parent domain (such as `.elum.services`), so signing
- * in to one ELUM service signs you in to all of them: write.elum.services, type.elum.services ...
+ * Session storage in cookies on a shared parent domain (such as `.elum.space`), so signing
+ * in to one ELUM service signs you in to all of them: write.elum.space, type.elum.space ...
  *
  * Sessions can be larger than one cookie, so values are split across numbered cookies
  * (`name.0`, `name.1` ...) with a count in `name`. Supabase's own refresh-token rotation still
@@ -15,8 +15,8 @@ const SHARED_HOSTS = ['netlify.app', 'vercel.app', 'pages.dev', 'github.io', 'on
  * under that domain, or the domain is a shared host like netlify.app. Null means the session stays
  * in this site's own storage, so a wrong setting can never silently drop every sign-in.
  */
-/** Where every ELUM app lives (write.elum.services, type.elum.services, ...). */
-export const FAMILY_DOMAIN = 'elum.services';
+/** Where every ELUM app lives (write.elum.space, type.elum.space, ...). */
+export const FAMILY_DOMAIN = 'elum.space';
 
 export function usableCookieDomain(domain: string | undefined, hostname: string): string | null {
   // Unset, the ELUM family domain is used whenever the app is served from it, so every ELUM app
